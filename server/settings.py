@@ -79,35 +79,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'server.wsgi.application'
 
-# Database
-# https://docs.djangoproject.com/en/3.2/ref/settings/#databases
-
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.mysql',  # 数据库引擎
-#         'NAME': 'next_digital_campus',  # 数据库名
-#         'USER': 'root',  # 用户名
-#         'PASSWORD': '123456',  # 密码
-#         'HOST': '127.0.0.1',  # HOST
-#         'PORT': '3306',  # 端口
-#     }
-# }
-
-# CACHES = {
-#     "default": {
-#         "BACKEND": "django_redis.cache.RedisCache",
-#         "LOCATION": "redis://127.0.0.1:6379/0",
-#         "OPTIONS": {
-#             "CLIENT_CLASS": "django_redis.client.DefaultClient",
-#             # "PASSWORD": "123456",
-#             # 压缩方法
-#             # "COMPRESSOR": "django_redis.compressors.zlib.ZlibCompressor",
-#             # 忽略异常
-#             "IGNORE_EXCEPTIONS": True,
-#         }
-#     }
-# }
-
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
 
@@ -219,8 +190,6 @@ SIMPLE_JWT = {
 
 # CORS
 CORS_ORIGIN_WHITELIST = (
-    'http://127.0.0.1',
-    'http://localhost',
     'http://127.0.0.1:3000',
     'http://127.0.0.1:3200',
     'http://localhost:3000',
