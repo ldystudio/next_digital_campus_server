@@ -1,0 +1,33 @@
+# Django stuff
+*.log
+*.pot
+*.pyc
+__pycache__/
+local_settings.py
+db.sqlite3
+.idea
+
+# Ignore Django migrations
+/*/migrations/
+
+# Ignore media files, if you are not using user uploaded media
+#/media/
+
+# Ignore static files, if you use a third-party service for hosting static files
+#/staticfiles/
+
+# Ignore development settings file
+/.env
+
+# Ignore production settings file
+/production.env
+
+# Ignore pipenv virtual environment
+/.venv/
+
+# Ignore macOS system files
+.DS_Store
+
+# Ignore temporary files
+*.swp
+*~

@@ -1,0 +1,37 @@
+# SECURITY WARNING: keep the secret key used in production secret!
+SECRET_KEY = 'django-insecure-3o8*)*-128vsm$=csp0ep7i^$j1$0@(d=#604xx19=kleabcj@'
+
+# Database
+# https://docs.djangoproject.com/en/3.2/ref/settings/#databases
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',  # 数据库引擎
+        'NAME': 'xxx',  # 数据库名
+        'USER': 'root',  # 用户名
+        'PASSWORD': '123456',  # 密码
+        'HOST': '127.0.0.1',  # HOST
+        'PORT': '3306',  # 端口
+    }
+}
+
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/0",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            "PASSWORD": "xxx",
+            # 压缩方法
+            # "COMPRESSOR": "django_redis.compressors.zlib.ZlibCompressor",
+            # 忽略异常
+            "IGNORE_EXCEPTIONS": True,
+        }
+    }
+}
+
+# EMAIL
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.xxx.com'  # 邮箱SMTP服务器地址
+EMAIL_PORT = 25  # 邮箱SMTP服务端口
+EMAIL_HOST_USER = 'xxx@xxx.com'  # 发送邮件的邮箱
+EMAIL_HOST_PASSWORD = 'xxxxxxxxxxxxxx'  # 发送邮件的邮箱授权码
