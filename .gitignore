@@ -8,7 +8,7 @@ db.sqlite3
 .idea
 
 # Ignore Django migrations
-/*/migrations/
+/*/migrations/*
 
 # Ignore media files, if you are not using user uploaded media
 #/media/
