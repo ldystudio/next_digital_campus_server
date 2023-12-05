@@ -27,7 +27,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 # Application definition
 
@@ -174,9 +174,9 @@ REST_FRAMEWORK = {
 
 SIMPLE_JWT = {
     # token有效期
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),
+    "ACCESS_TOKEN_LIFETIME": timedelta(hours=12),
     # 刷新token有效期
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=15),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=30),
     # token时是否更新刷新token
     "ROTATE_REFRESH_TOKENS": True,
     # 记录用户最后登录时间
@@ -194,5 +194,6 @@ CORS_ORIGIN_WHITELIST = (
     'http://127.0.0.1:3200',
     'http://localhost:3000',
     'http://localhost:3200',
+    'http://192.168.1.215:3000',
 )
 CORS_ALLOW_CREDENTIALS = True  # 允许携带cookie

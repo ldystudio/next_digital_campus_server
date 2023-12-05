@@ -23,7 +23,7 @@ class TokenObtainPairSerializer(SimpleJwtTokenObtainPairSerializer):
         token = super().get_token(user)
         # 添加个人信息
         token['userName'] = user.username
-        token['userRole'] = user.auth_account
+        token['userRole'] = user.user_role
         return token
 
     def validate(self, attrs):

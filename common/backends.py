@@ -17,7 +17,7 @@ class AuthBackend(ModelBackend):
         # 获取缓存中的验证码
         captcha = cache.get(traceId, version='ImageCaptcha')
         # 验证码验证
-        if verCode.lower() != captcha.lower():
+        if not captcha or verCode.lower() != captcha.lower():
             raise serializers.ValidationError('验证码错误')
         # 验证码验证成功后，删除缓存
         cache.expire(traceId, timeout=0, version='ImageCaptcha')

@@ -43,6 +43,6 @@ def exception_handler(exc, context):
             # 否则，根据需求，自定义异常处理逻辑
             response = Result.FAIL_500_INTERNAL_SERVER_ERROR()
 
-    print(traceback.format_exception_only(exc.__class__, exc))
-    # print(traceback.format_exc())
+    # print(traceback.format_exception_only(exc.__class__, exc))
+    print(traceback.format_exc())
     return response
