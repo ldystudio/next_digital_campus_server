@@ -1,8 +1,8 @@
+import snowflake.client
 from django.core.cache import cache
 from rest_framework import serializers
 from rest_framework.serializers import Serializer
 
-from common.utils import generate_snowflake
 from iam.models import Account
 
 
@@ -26,13 +26,12 @@ class RegisterAccountSerializer(Serializer):
         cache.expire(traceId, timeout=0, version='EmailCaptcha')
 
         user = Account.objects.create_user(
-            id=generate_snowflake(),
+            id=snowflake.client.get_guid(),
             username=validated_data['username'],
             password=validated_data['password'],
             email=validated_data['email']
         )
         return user
-
 
     def update(self, instance, validated_data):
         # instance.username = validated_data.get('username', instance.username)

@@ -3,7 +3,6 @@ import os
 from django.core.cache import cache
 from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
 from rest_framework_simplejwt.utils import datetime_to_epoch, aware_utcnow
-from snowflake import SnowflakeGenerator
 
 
 # def is_own_token(refresh, access, user_id):
@@ -41,9 +40,3 @@ def serializer_token(token):
             return AccessToken(token)
     else:
         raise TypeError('token must be a str or a instance of RefreshToken or AccessToken')
-
-
-def generate_snowflake():
-    # init_generator = SnowflakeGenerator(instance=os.getpid() % 1000, epoch=1288834974657)
-    init_generator = SnowflakeGenerator(instance=0, epoch=1288834974657)
-    return next(init_generator)

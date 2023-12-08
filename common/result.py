@@ -126,6 +126,7 @@ class Result(Response):
                              code=Status.OK_203_REFRESH_TOKEN.value[0]):
         return cls.OK(code=code, msg=msg, data=data, status=drf_status.HTTP_203_NON_AUTHORITATIVE_INFORMATION)
 
+    # 修改、删除
     @classmethod
     def OK_204_NO_CONTENT(cls,
                           data=None,
