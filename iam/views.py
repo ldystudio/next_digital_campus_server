@@ -17,7 +17,7 @@ from common.captcha import generate_captcha
 from common.result import Result
 from common.throttling import ImageCaptchaThrottle, EmailCaptchaThrottle
 from common.utils import join_blacklist
-from .serializer import RegisterAccountSerializer
+from .serializer import RegisterUserSerializer
 
 
 class ImageCaptcha(APIView):
@@ -80,7 +80,7 @@ class AuthViewSet(ViewSet):
 
     @action(methods=['POST'], detail=False)
     def register(self, request, *args, **kwargs):
-        serializer = RegisterAccountSerializer(data=request.data)
+        serializer = RegisterUserSerializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
             serializer.save()
             return Result.OK_201_CREATED(msg='注册成功')

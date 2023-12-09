@@ -25,6 +25,8 @@ class TokenObtainPairSerializer(SimpleJwtTokenObtainPairSerializer):
         token['userName'] = user.username
         token['userRole'] = user.user_role
         token['avatar'] = user.avatar
+        token['realName'] = user.get_full_name()
+        token['email'] = user.email
         return token
 
     def validate(self, attrs):

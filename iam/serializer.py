@@ -3,10 +3,10 @@ from django.core.cache import cache
 from rest_framework import serializers
 from rest_framework.serializers import Serializer
 
-from iam.models import Account
+from iam.models import User
 
 
-class RegisterAccountSerializer(Serializer):
+class RegisterUserSerializer(Serializer):
     username = serializers.CharField(required=True)
     password = serializers.CharField(required=True)
     email = serializers.EmailField(required=True)
@@ -25,7 +25,7 @@ class RegisterAccountSerializer(Serializer):
         # 验证码验证成功后，删除缓存
         cache.expire(traceId, timeout=0, version='EmailCaptcha')
 
-        user = Account.objects.create_user(
+        user = User.objects.create_user(
             id=snowflake.client.get_guid(),
             username=validated_data['username'],
             password=validated_data['password'],

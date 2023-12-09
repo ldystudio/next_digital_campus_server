@@ -120,7 +120,7 @@ STATIC_URL = '/static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-AUTH_USER_MODEL = 'iam.Account'
+AUTH_USER_MODEL = 'iam.User'
 AUTHENTICATION_BACKENDS = ['common.backends.AuthBackend']
 
 # DRF全局配置
