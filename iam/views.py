@@ -54,7 +54,7 @@ class EmailCaptcha(APIView):
 
         message = f"""
         您的验证码为：{captcha}，请在30分钟内完成填写。
-        【Soybean Admin】
+        【Next Digital Campus】
         """
         mail.send_mail(subject='验证码',
                        message=message,

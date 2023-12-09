@@ -22,10 +22,11 @@ class TokenObtainPairSerializer(SimpleJwtTokenObtainPairSerializer):
         """
         token = super().get_token(user)
         # 添加个人信息
+        token['userId'] = str(user.id)
         token['userName'] = user.username
         token['userRole'] = user.user_role
-        token['avatar'] = user.avatar
         token['realName'] = user.get_full_name()
+        token['avatar'] = user.avatar
         token['email'] = user.email
         return token
 
