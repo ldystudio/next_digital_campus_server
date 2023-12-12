@@ -14,6 +14,7 @@ urlpatterns = [
     path('auth/verify/', token_verify, name='token_verify'),
     path('auth/image_captcha/', views.ImageCaptcha.as_view(), name='captcha1'),
     path('auth/email_captcha/', views.EmailCaptcha.as_view(), name='captcha2'),
+    path('test/', views.TestView.as_view(), name='test'),
 ]
 
 urlpatterns += router.urls

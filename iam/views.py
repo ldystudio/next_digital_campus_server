@@ -63,6 +63,13 @@ class EmailCaptcha(APIView):
         return Result.OK_200_SUCCESS(msg='验证码发送成功')
 
 
+class TestView(APIView):
+    def get(self, request, *args, **kwargs):
+        print(request.headers)
+        print(request.COOKIES)
+        return Result.OK_200_SUCCESS(msg='测试成功')
+
+
 class AuthViewSet(ViewSet):
     authentication_classes = []
     permission_classes = []
