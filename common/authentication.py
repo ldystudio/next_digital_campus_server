@@ -3,9 +3,10 @@ from rest_framework_simplejwt.exceptions import InvalidToken
 
 from common.exception.exception import InBlacklist
 from common.utils import in_blacklist
+from common.backends import JWTCookieAuthentication
 
 
-class JWTAuthentication(SimpleJwtAuthentication):
+class JWTAuthentication(JWTCookieAuthentication):
 
     def authenticate(self, request):
         try:
@@ -17,4 +18,3 @@ class JWTAuthentication(SimpleJwtAuthentication):
             raise InBlacklist()
 
         return user, token
-
