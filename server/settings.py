@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 
 from pathlib import Path
 from datetime import timedelta
+from expand import verifying_key, signing_key
 
 try:
     from .local_settings import *
@@ -120,7 +121,7 @@ STATIC_URL = '/static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'iam.User'
-AUTHENTICATION_BACKENDS = ['common.backends.AuthBackend']
+AUTHENTICATION_BACKENDS = ['common.backends.LoginModelBackend']
 
 # DRF全局配置
 REST_FRAMEWORK = {
@@ -129,7 +130,7 @@ REST_FRAMEWORK = {
         # JWT认证
         # 'rest_framework_simplejwt.authentication.JWTAuthentication',
         # 重写JWT认证，加入redis黑名单机制
-        'common.authentication.JWTAuthentication',
+        'common.backends.JWTCookieAuthentication',
     ),
     # 权限
     'DEFAULT_PERMISSION_CLASSES': (
@@ -178,6 +179,9 @@ SIMPLE_JWT = {
     "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
     # 记录用户最后登录时间
     "UPDATE_LAST_LOGIN": True,
+    "ALGORITHM": "RS256",
+    "SIGNING_KEY": signing_key,
+    "VERIFYING_KEY": verifying_key,
     "USER_ID_CLAIM": "userId",
     # 自定义Token配对序列化器
     "TOKEN_OBTAIN_SERIALIZER": "common.serializer.TokenObtainPairSerializer",
