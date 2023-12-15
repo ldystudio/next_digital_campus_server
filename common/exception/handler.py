@@ -1,12 +1,12 @@
 import smtplib
 import traceback
-
+from django.utils.translation import gettext_lazy as _
 from django.core import exceptions
 from rest_framework.exceptions import Throttled
 from rest_framework.utils.serializer_helpers import ReturnDict
 from rest_framework.views import exception_handler as drf_exception_handler
 from django.db.utils import IntegrityError
-
+from rest_framework_simplejwt.exceptions import TokenError
 from common.result import Result
 
 
@@ -49,6 +49,8 @@ def exception_handler(exc, context):
             response = Result.FAIL_400_INVALID_PARAM(exc.message)
         elif isinstance(exc, smtplib.SMTPDataError):
             response = Result.FAIL_400_INVALID_PARAM("邮箱可能包含不存在的帐户，请检查收件人邮箱。")
+        elif isinstance(exc, TokenError):
+            response = Result.FAIL_401_INVALID_TOKEN(_("令牌无效或已过期"))
         else:
             # 否则，根据需求，自定义异常处理逻辑
             response = Result.FAIL_500_INTERNAL_SERVER_ERROR()

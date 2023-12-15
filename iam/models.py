@@ -16,9 +16,14 @@ class User(AbstractUser):
     gender = models.SmallIntegerField(verbose_name='性别', choices=gender_choices, default=1)
     birth_date = models.DateField(verbose_name='出生日期', null=True)
     address = models.CharField(verbose_name='地址', max_length=100, null=True)
+
     # avatar = models.ImageField(upload_to='iam/avatar/', null=True)
 
     class Meta:
         verbose_name = '账号信息'
         verbose_name_plural = verbose_name
         ordering = ('-date_joined',)
+
+    def get_full_name(self):
+        full_name = f'{self.first_name}{self.last_name}'
+        return full_name.strip()

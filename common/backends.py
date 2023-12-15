@@ -7,11 +7,13 @@ from rest_framework import serializers
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.exceptions import InvalidToken
 
+from common.exception.exception import InBlacklist
+from common.utils import in_blacklist
 from iam.models import User
 
 
 # 自定义登录认证
-class AuthBackend(ModelBackend):
+class LoginModelBackend(ModelBackend):
     def authenticate(self, request, username=None, password=None, **kwargs):
         trace_id = request.data.get('traceId')
         login_type = request.data.get('type')
@@ -49,15 +51,18 @@ class JWTCookieAuthentication(JWTAuthentication):
         try:
             validated_token = self.get_validated_token(token)
         except InvalidToken:
-            raise exceptions.AuthenticationFailed(_("Invalid token."))
+            raise exceptions.AuthenticationFailed(_("无效的token"))
 
         user = self.get_user(validated_token)
 
         if not user:
-            raise exceptions.AuthenticationFailed(_("Invalid token."))
+            raise exceptions.AuthenticationFailed(_("无效的token"))
 
-        return (user, validated_token)
+        if in_blacklist(validated_token):
+            raise InBlacklist(_("token已失效"))
 
-    def get_token(self, request):
-        token = request.COOKIES.get('token')
-        return token.split(' ')[-1] if token else None
+        return user, validated_token
+
+    @staticmethod
+    def get_token(request):
+        return request.COOKIES.get('accessToken')
