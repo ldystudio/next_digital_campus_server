@@ -31,3 +31,8 @@ db.sqlite3
 # Ignore temporary files
 *.swp
 *~
+
+# Ignore PEM
+private.pem
+public.pem
+test.py
