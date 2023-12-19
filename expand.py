@@ -1,5 +1,7 @@
+import snowflake.client
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
+from requests.exceptions import ConnectionError
 
 try:
     with open('private.pem', 'r') as f:
@@ -32,3 +34,9 @@ except FileNotFoundError:
         )
         verifying_key = public_pem.decode('utf-8')
         f.write(public_pem)
+
+try:
+    snowflake_stats = snowflake.client.get_stats()
+    print(f'本机雪花算法workerID：{snowflake_stats["worker"]}')
+except ConnectionError:
+    raise ConnectionError('连接不到生成雪花算法服务器，请检查服务器是否启动，命令详见README')
