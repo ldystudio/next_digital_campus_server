@@ -177,6 +177,8 @@ SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(hours=12),
     # 刷新token有效期
     "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+    # 刷新token过期后是否重置刷新token
+    "ROTATE_REFRESH_TOKENS": True,
     # 记录用户最后登录时间
     "UPDATE_LAST_LOGIN": True,
     "ALGORITHM": "RS256",
