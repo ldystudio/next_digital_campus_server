@@ -38,7 +38,7 @@ class TokenObtainPairSerializer(SimpleJwtTokenObtainPairSerializer):
         """
         access_and_refresh = super().validate(attrs)
         data = {
-            'token': access_and_refresh.get('access'),
+            'accessToken': access_and_refresh.get('access'),
             'refreshToken': access_and_refresh.get('refresh')
         }
         # 获取Token对象
@@ -66,4 +66,4 @@ class TokenRefreshSerializer(SimpleJwtTokenRefreshSerializer):
 
         join_blacklist(refresh_token)
         return {"code": Status.OK_200_SUCCESS.value[0], "msg": "刷新成功",
-                "data": {"token": data['access'], "refreshToken": data['refresh']}}
+                "data": {"accessToken": data['access'], "refreshToken": data['refresh']}}
