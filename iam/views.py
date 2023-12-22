@@ -10,14 +10,17 @@ from django.core.validators import validate_email
 from django.http import HttpResponse
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
+from rest_framework.permissions import IsAdminUser
 from rest_framework.views import APIView
-from rest_framework.viewsets import ViewSet
+from rest_framework.viewsets import ViewSet, ModelViewSet
 
 from common.captcha import generate_captcha
+from common.permissions import IsOwnerOperation
 from common.result import Result
 from common.throttling import ImageCaptchaThrottle, EmailCaptchaThrottle
 from common.utils import join_blacklist
-from .serializer import RegisterUserSerializer
+from .models import User
+from .serializer import RegisterUserSerializer, UserSerializer
 
 
 class ImageCaptcha(APIView):
@@ -94,26 +97,32 @@ class AuthViewSet(ViewSet):
         else:
             return Result.FAIL_400_OPERATION(data=serializer.errors)
 
-# class AccountViewSet(ModelViewSet):
-#     queryset = Account.objects.all().order_by('-date_joined')
-#     serializer_class = RegisterAccountSerializer
-#
-#     def list(self, request, *args, **kwargs):
-#         resp = super().list(request, *args, **kwargs)
-#         return Result.OK_200_SUCCESS(data=resp.data)
-#
-#     def create(self, request, *args, **kwargs):
-#         resp = super().create(request, *args, **kwargs)
-#         return Result.OK_201_CREATED(data=resp.data)
-#
-#     def retrieve(self, request, *args, **kwargs):
-#         resp = super().retrieve(request, *args, **kwargs)
-#         return Result.OK_200_SUCCESS(data=resp.data)
-#
-#     def update(self, request, *args, **kwargs):
-#         resp = super().update(request, *args, **kwargs)
-#         return Result.OK_202_ACCEPTED(data=resp.data)
-#
-#     def destroy(self, request, *args, **kwargs):
-#         resp = super().destroy(request, *args, **kwargs)
-#         return Result.OK_204_NO_CONTENT(data=resp.data)
+
+class UserViewSet(ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = (IsOwnerOperation,)
+
+    def get_permissions(self):
+        # 仅对“list”操作应用IsAdminUser权限
+        return (IsAdminUser(),) if self.action == 'list' else super().get_permissions()
+
+    def list(self, request, *args, **kwargs):
+        response = super().list(request, *args, **kwargs)
+        return Result.OK_200_SUCCESS(data=response.data)
+
+    def retrieve(self, request, *args, **kwargs):
+        response = super().retrieve(request, *args, **kwargs)
+        return Result.OK_200_SUCCESS(data=response.data)
+
+    def create(self, request, *args, **kwargs):
+        response = super().create(request, *args, **kwargs)
+        return Result.OK_201_CREATED(data=response.data)
+
+    def update(self, request, *args, **kwargs):
+        response = super().update(request, *args, **kwargs)
+        return Result.OK_202_ACCEPTED(data=response.data)
+
+    def destroy(self, request, *args, **kwargs):
+        response = super().destroy(request, *args, **kwargs)
+        return Result.OK_204_NO_CONTENT(data=response.data)

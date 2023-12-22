@@ -5,7 +5,7 @@ from rest_framework_simplejwt.views import token_obtain_pair, token_verify, toke
 from . import views
 
 router = SimpleRouter()
-# router.register('iam', views.AccountViewSet, basename='iam')
+router.register('iam', views.UserViewSet, basename='iam')
 router.register('auth', views.AuthViewSet, basename='auth')
 
 urlpatterns = [

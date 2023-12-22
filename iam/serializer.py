@@ -6,6 +6,21 @@ from rest_framework.serializers import Serializer
 from iam.models import User
 
 
+class UserSerializer(serializers.ModelSerializer):
+    # 添加自定义real_name字段
+    real_name = serializers.SerializerMethodField()
+
+    def get_real_name(self, obj):
+        return obj.get_full_name()
+
+    class Meta:
+        model = User
+        fields = (
+            'username', 'real_name', 'email', 'phone', 'user_role', 'status',
+            'avatar', 'signature', 'gender', 'birth_date', 'address'
+        )
+
+
 class RegisterUserSerializer(Serializer):
     username = serializers.CharField(required=True)
     password = serializers.CharField(required=True)
