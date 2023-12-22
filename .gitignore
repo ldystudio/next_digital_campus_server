@@ -23,7 +23,7 @@ db.sqlite3
 /production.env
 
 # Ignore pipenv virtual environment
-/.venv/
+/venv/
 
 # Ignore macOS system files
 .DS_Store
