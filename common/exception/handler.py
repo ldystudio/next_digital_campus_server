@@ -23,7 +23,7 @@ def exception_handler(exc, context):
     if response:
         error_msg = ""
         if isinstance(response.data, dict):
-            error_msg = response.data.get('detail', exc.detail)
+            error_msg = response.data.get('detail', exc)
 
             if isinstance(error_msg, ReturnDict):
                 error_msg = '\u3000'.join([(v[0] if '_' in k else f"{k}: {v[0]}") for k, v in error_msg.items()])
@@ -38,7 +38,8 @@ def exception_handler(exc, context):
             error_msg = exc.detail[0]
 
         if isinstance(exc, Throttled):
-            response = Result.FAIL_429_TOO_MANY_REQUESTS(error_msg)
+            response = Result.FAIL_429_TOO_MANY_REQUESTS(
+                error_msg.replace("。 Expected available in", "，").replace("seconds.", "秒后可用。"))
         else:
             response = Result.FAIL(code=response.status_code * 10,
                                    msg=error_msg,
@@ -64,7 +65,7 @@ def handle_validation_errors(exc):
 
     # 检查映射中是否有对应的处理函数
     if isinstance(exc, tuple(validation_errors)):
-        return validation_errors[exc]()
+        return validation_errors[exc.__class__]()
 
     # 默认情况下，处理500内部服务器错误
     return Result.FAIL_500_INTERNAL_SERVER_ERROR()
