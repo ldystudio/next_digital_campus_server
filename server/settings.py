@@ -121,7 +121,7 @@ STATIC_URL = '/static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'iam.User'
-AUTHENTICATION_BACKENDS = ['common.backends.LoginModelBackend']
+AUTHENTICATION_BACKENDS = ['common.authentication.LoginModelBackend']
 
 # DRF全局配置
 REST_FRAMEWORK = {
@@ -130,7 +130,7 @@ REST_FRAMEWORK = {
         # JWT认证
         # 'rest_framework_simplejwt.authentication.JWTAuthentication',
         # 重写JWT认证，加入redis黑名单机制
-        'common.backends.JWTCookieAuthentication',
+        'common.authentication.JWTCookieAuthentication',
     ),
     # 权限
     'DEFAULT_PERMISSION_CLASSES': (
@@ -158,7 +158,7 @@ REST_FRAMEWORK = {
         # 验证码频率
         'image_captcha': '2/s',
         # 邮箱验证码频率
-        'email_captcha': '1/m',
+        'email_captcha': '2/m',
     },
     # 分页
     'DEFAULT_PAGINATION_CLASS': 'common.pagination.PageNumberPagination',
@@ -198,5 +198,6 @@ CORS_ORIGIN_WHITELIST = (
     'http://localhost:3000',
     'http://localhost:3200',
     'http://192.168.1.215:3000',
+    'http://10.20.98.24:3000',
 )
 CORS_ALLOW_CREDENTIALS = True  # 允许携带cookie
