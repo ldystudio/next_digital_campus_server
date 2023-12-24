@@ -26,10 +26,11 @@ class LoginModelBackend(ModelBackend):
         if ver_code is None or trace_id is None:
             raise serializers.ValidationError('验证码不能为空')
 
-        captcha = cache.get(trace_id, version='EmailCaptcha' if login_type == 'emailLogin' else 'ImageCaptcha')
+        captcha_type = 'EmailCaptcha' if login_type == 'emailLogin' else 'ImageCaptcha'
+        captcha = cache.get(trace_id, version=captcha_type)
         if not captcha or ver_code.lower() != captcha.lower():
             raise serializers.ValidationError('验证码错误')
-        cache.expire(trace_id, timeout=0, version='EmailCaptcha' if login_type == 'emailLogin' else 'ImageCaptcha')
+        cache.expire(trace_id, timeout=0, version=captcha_type)
 
         try:
             user = User.objects.get(Q(username=username) | Q(email=username) | Q(email=email))
