@@ -23,7 +23,7 @@ def exception_handler(exc, context):
     if response:
         error_msg = ""
         if isinstance(response.data, dict):
-            error_msg = response.data.get('detail', exc)
+            error_msg = response.data.get('detail', response.data or exc.detail or exc)
 
             if isinstance(error_msg, ReturnDict):
                 error_msg = '\u3000'.join([(v[0] if '_' in k else f"{k}: {v[0]}") for k, v in error_msg.items()])
