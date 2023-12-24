@@ -11,71 +11,54 @@ from django.http import HttpResponse
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAdminUser
-from rest_framework.views import APIView
-from rest_framework.viewsets import ViewSet, ModelViewSet
+from rest_framework.viewsets import ViewSet
 
 from common.captcha import generate_captcha
 from common.permissions import IsOwnerOperation
 from common.result import Result
 from common.throttling import ImageCaptchaThrottle, EmailCaptchaThrottle
 from common.utils import join_blacklist
+from common.viewsets import ModelViewSetWithResult
 from .models import User
 from .serializer import RegisterUserSerializer, UserSerializer
 
 
-class ImageCaptcha(APIView):
+class AuthViewSet(ViewSet):
     authentication_classes = []
     permission_classes = []
-    throttle_classes = (ImageCaptchaThrottle,)
 
-    def get(self, request, *args, **kwargs):
+    @action(methods=['GET'], detail=False, throttle_classes=(ImageCaptchaThrottle,))
+    def image_captcha(self, request, *args, **kwargs):
         text, image = generate_captcha()
         out = BytesIO()
         image.save(out, format='png')
 
-        traceId = request.query_params.get('traceId')
-        cache.add(traceId, text, timeout=60 * 5, version='ImageCaptcha')
+        trace_id = request.query_params.get('traceId')
+        cache.add(trace_id, text, timeout=60 * 5, version='ImageCaptcha')
 
         no_cache_header = {'Pragma': 'no-cache',
                            'Cache-Control': 'no-cache',
                            'Expires': datetime.now(pytz.timezone('GMT')).strftime('%a, %d %b %Y %H:%M:%S GMT')}
         return HttpResponse(out.getvalue(), content_type='image/png', headers=no_cache_header)
 
-
-class EmailCaptcha(APIView):
-    authentication_classes = []
-    permission_classes = []
-    throttle_classes = (EmailCaptchaThrottle,)
-
-    def post(self, request, *args, **kwargs):
+    @action(methods=['POST'], detail=False, throttle_classes=(EmailCaptchaThrottle,))
+    def email_captcha(self, request, *args, **kwargs):
         recipient = request.data.get('email')
-        traceId = request.data.get('traceId')
+        trace_id = request.data.get('traceId')
         validate_email(recipient)
 
         captcha = ''.join(random.sample(string.digits, 6))
-        cache.add(traceId, captcha, timeout=60 * 30, version='EmailCaptcha')
+        cache.add(trace_id, captcha, timeout=60 * 30, version='EmailCaptcha')
 
         message = f"""
-        您的验证码为：{captcha}，请在30分钟内完成填写。
-        【Next Digital Campus】
-        """
+                您的验证码为：{captcha}，请在30分钟内完成填写。
+                【Next Digital Campus】
+                """
         mail.send_mail(subject='验证码',
                        message=message,
                        from_email='1187551003@qq.com',
                        recipient_list=[recipient])
         return Result.OK_200_SUCCESS(msg='验证码发送成功')
-
-
-class TestView(APIView):
-    def get(self, request, *args, **kwargs):
-        print(request.headers)
-        print(request.COOKIES)
-        return Result.OK_200_SUCCESS(msg='测试成功')
-
-
-class AuthViewSet(ViewSet):
-    authentication_classes = []
-    permission_classes = []
 
     @action(methods=['POST'], detail=False)
     def logout(self, request, *args, **kwargs):
@@ -94,11 +77,10 @@ class AuthViewSet(ViewSet):
         if serializer.is_valid(raise_exception=True):
             serializer.save()
             return Result.OK_201_CREATED(msg='注册成功')
-        else:
-            return Result.FAIL_400_OPERATION(data=serializer.errors)
+        return Result.FAIL_400_OPERATION(data=serializer.errors)
 
 
-class UserViewSet(ModelViewSet):
+class UserViewSet(ModelViewSetWithResult):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = (IsOwnerOperation,)
@@ -107,22 +89,13 @@ class UserViewSet(ModelViewSet):
         # 仅对“list”操作应用IsAdminUser权限
         return (IsAdminUser(),) if self.action == 'list' else super().get_permissions()
 
-    def list(self, request, *args, **kwargs):
-        response = super().list(request, *args, **kwargs)
-        return Result.OK_200_SUCCESS(data=response.data)
-
-    def retrieve(self, request, *args, **kwargs):
-        response = super().retrieve(request, *args, **kwargs)
-        return Result.OK_200_SUCCESS(data=response.data)
-
     def create(self, request, *args, **kwargs):
-        response = super().create(request, *args, **kwargs)
-        return Result.OK_201_CREATED(data=response.data)
+        return Result.FAIL_403_NO_PERMISSION(msg='不支持POST请求')
 
-    def update(self, request, *args, **kwargs):
-        response = super().update(request, *args, **kwargs)
-        return Result.OK_202_ACCEPTED(data=response.data)
-
-    def destroy(self, request, *args, **kwargs):
-        response = super().destroy(request, *args, **kwargs)
-        return Result.OK_204_NO_CONTENT(data=response.data)
+    # def partial_update(self, request, *args, **kwargs):
+    #     if 'real_name' in request.data.keys():
+    #         first_name, last_name = request.data.pop('real_name').split(' ')
+    #         request.data['first_name'] = first_name
+    #         request.data['last_name'] = last_name
+    #     print(request.data)
+    #     return super().partial_update(request, *args, **kwargs)
