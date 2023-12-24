@@ -1,7 +1,8 @@
-"""server URL Configuration
+"""
+URL configuration for server project.
 
 The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/3.2/topics/http/urls/
+    https://docs.djangoproject.com/en/4.2/topics/http/urls/
 Examples:
 Function views
     1. Add an import:  from my_app import views
@@ -16,14 +17,16 @@ Including another URLconf
 from django.urls import path, include
 from rest_framework.routers import SimpleRouter
 from rest_framework.documentation import include_docs_urls
+
 # from common import views
 
 # router = SimpleRouter()
 # router.register('api', views.TextViewSet,basename='captcha')
+
 urlpatterns = [
     # path('admin/', admin.site.urls),
-    path('docs/', include_docs_urls(title='DRF Api文档', description='Django')),
-    path('api/', include('iam.urls')),
+    # path('docs/', include_docs_urls(title='DRF Api文档', description='Django')),
+    path('api/v1/auth/', include('iam.urls')),
 ]
 
 # urlpatterns += router.urls
