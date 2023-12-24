@@ -7,17 +7,18 @@ from iam.models import User
 
 
 class UserSerializer(serializers.ModelSerializer):
-    # 添加自定义real_name字段
-    real_name = serializers.SerializerMethodField()
 
-    def get_real_name(self, obj):
-        return obj.get_full_name()
+    # 查询时将id转为字符串，以防id传输到前端精度丢失
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+        ret['id'] = str(ret['id'])
+        return ret
 
     class Meta:
         model = User
         fields = (
-            'username', 'real_name', 'email', 'phone', 'user_role', 'status',
-            'avatar', 'signature', 'gender', 'birth_date', 'address'
+            'id', 'username', 'real_name', 'email', 'phone', 'user_role',
+            'status', 'avatar', 'signature', 'gender', 'birth_date', 'address'
         )
 
 
