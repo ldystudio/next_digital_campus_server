@@ -12,7 +12,9 @@ from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAdminUser
 from rest_framework.viewsets import ViewSet
+from rest_framework_tracking.mixins import LoggingMixin
 
+from common.authentication import JWTCookieAuthentication
 from common.captcha import generate_captcha
 from common.permissions import IsOwnerOperation
 from common.result import Result
@@ -23,9 +25,10 @@ from .models import User
 from .serializer import RegisterUserSerializer, UserSerializer
 
 
-class AuthViewSet(ViewSet):
+class AuthViewSet(LoggingMixin, ViewSet):
     authentication_classes = []
     permission_classes = []
+    logging_methods = ['POST']
 
     @action(methods=['GET'], detail=False, throttle_classes=(ImageCaptchaThrottle,))
     def image_captcha(self, request, *args, **kwargs):
@@ -60,7 +63,7 @@ class AuthViewSet(ViewSet):
                        recipient_list=[recipient])
         return Result.OK_200_SUCCESS(msg='验证码发送成功')
 
-    @action(methods=['POST'], detail=False)
+    @action(methods=['POST'], detail=False, authentication_classes=[JWTCookieAuthentication])
     def logout(self, request, *args, **kwargs):
         refresh_token = request.data.get('refresh')
 

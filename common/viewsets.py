@@ -1,9 +1,12 @@
 from rest_framework.viewsets import ModelViewSet
+from rest_framework_tracking.mixins import LoggingMixin
 
 from common.result import Result
 
 
-class ModelViewSetWithResult(ModelViewSet):
+class ModelViewSetWithResult(LoggingMixin, ModelViewSet):
+    logging_methods = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']
+
     def list(self, request, *args, **kwargs):
         response = super().list(request, *args, **kwargs)
         return Result.OK_200_SUCCESS(data=response.data)
