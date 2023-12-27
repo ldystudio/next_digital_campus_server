@@ -20,6 +20,7 @@ class UserSerializer(serializers.ModelSerializer):
             'id', 'username', 'real_name', 'email', 'phone', 'user_role',
             'status', 'avatar', 'signature', 'gender', 'birth_date', 'address'
         )
+        read_only_fields = ('id', 'date_joined', 'date_updated')
 
 
 class RegisterUserSerializer(Serializer):
