@@ -94,11 +94,3 @@ class UserViewSet(ModelViewSetWithResult):
 
     def create(self, request, *args, **kwargs):
         return Result.FAIL_403_NO_PERMISSION(msg='不支持POST请求')
-
-    # def partial_update(self, request, *args, **kwargs):
-    #     if 'real_name' in request.data.keys():
-    #         first_name, last_name = request.data.pop('real_name').split(' ')
-    #         request.data['first_name'] = first_name
-    #         request.data['last_name'] = last_name
-    #     print(request.data)
-    #     return super().partial_update(request, *args, **kwargs)
