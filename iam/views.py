@@ -39,10 +39,16 @@ class AuthViewSet(LoggingMixin, ViewSet):
         trace_id = request.query_params.get('traceId')
         cache.add(trace_id, text, timeout=60 * 5, version='ImageCaptcha')
 
-        no_cache_header = {'Pragma': 'no-cache',
-                           'Cache-Control': 'no-cache',
-                           'Expires': datetime.now(pytz.timezone('GMT')).strftime('%a, %d %b %Y %H:%M:%S GMT')}
-        return HttpResponse(out.getvalue(), content_type='image/png', headers=no_cache_header)
+        no_cache_header = {
+            'Pragma': 'no-cache',
+            'Cache-Control': 'no-cache',
+            'Expires': datetime.now(pytz.timezone('GMT')).strftime(
+                '%a, %d %b %Y %H:%M:%S GMT'
+            ),
+        }
+        return HttpResponse(
+            out.getvalue(), content_type='image/png', headers=no_cache_header
+        )
 
     @action(methods=['POST'], detail=False, throttle_classes=(EmailCaptchaThrottle,))
     def email_captcha(self, request, *args, **kwargs):
@@ -57,13 +63,17 @@ class AuthViewSet(LoggingMixin, ViewSet):
                 您的验证码为：{captcha}，请在30分钟内完成填写。
                 【Next Digital Campus】
                 """
-        mail.send_mail(subject='验证码',
-                       message=message,
-                       from_email='1187551003@qq.com',
-                       recipient_list=[recipient])
+        mail.send_mail(
+            subject='验证码',
+            message=message,
+            from_email='1187551003@qq.com',
+            recipient_list=[recipient],
+        )
         return Result.OK_200_SUCCESS(msg='验证码发送成功')
 
-    @action(methods=['POST'], detail=False, authentication_classes=[JWTCookieAuthentication])
+    @action(
+        methods=['POST'], detail=False, authentication_classes=[JWTCookieAuthentication]
+    )
     def logout(self, request, *args, **kwargs):
         refresh_token = request.data.get('refresh')
 

@@ -26,7 +26,12 @@ def exception_handler(exc, context):
             error_msg = response.data.get('detail', response.data or exc.detail or exc)
 
             if isinstance(error_msg, ReturnDict):
-                error_msg = '\u3000'.join([(v[0] if '_' in k else f"{k}: {v[0]}") for k, v in error_msg.items()])
+                error_msg = '\u3000'.join(
+                    [
+                        (v[0] if '_' in k else f"{k}: {v[0]}")
+                        for k, v in error_msg.items()
+                    ]
+                )
 
             if response.data.get('code') == 'token_not_valid':
                 if context['view'].__class__.__name__ == 'TokenRefreshView':
@@ -39,12 +44,17 @@ def exception_handler(exc, context):
 
         if isinstance(exc, Throttled):
             response = Result.FAIL_429_TOO_MANY_REQUESTS(
-                error_msg.replace("。 Expected available in", "，").replace("seconds.", "秒后可用。"))
+                error_msg.replace("。 Expected available in", "，").replace(
+                    "seconds.", "秒后可用。"
+                )
+            )
         else:
-            response = Result.FAIL(code=response.status_code * 10,
-                                   msg=error_msg,
-                                   status=response.status_code,
-                                   header=response.headers)
+            response = Result.FAIL(
+                code=response.status_code * 10,
+                msg=error_msg,
+                status=response.status_code,
+                header=response.headers,
+            )
     else:
         # 处理非DRF的异常
         response = handle_validation_errors(exc)
@@ -59,8 +69,10 @@ def handle_validation_errors(exc):
     validation_errors = {
         IntegrityError: lambda: Result.FAIL_400_INVALID_PARAM(_('用户名或邮箱已存在')),
         ValidationError: lambda: Result.FAIL_400_INVALID_PARAM(exc.message),
-        SMTPDataError: lambda: Result.FAIL_400_INVALID_PARAM(_("邮箱可能包含不存在的帐户，请检查收件人邮箱。")),
-        TokenError: lambda: Result.FAIL_401_INVALID_TOKEN(_("令牌无效或已过期"))
+        SMTPDataError: lambda: Result.FAIL_400_INVALID_PARAM(
+            _("邮箱可能包含不存在的帐户，请检查收件人邮箱。")
+        ),
+        TokenError: lambda: Result.FAIL_401_INVALID_TOKEN(_("令牌无效或已过期")),
     }
 
     # 检查映射中是否有对应的处理函数

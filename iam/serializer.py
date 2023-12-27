@@ -7,7 +7,6 @@ from iam.models import User
 
 
 class UserSerializer(serializers.ModelSerializer):
-
     # 查询时将id转为字符串，以防id传输到前端精度丢失
     def to_representation(self, instance):
         ret = super().to_representation(instance)
@@ -17,8 +16,18 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = (
-            'id', 'username', 'real_name', 'email', 'phone', 'user_role',
-            'status', 'avatar', 'signature', 'gender', 'birth_date', 'address'
+            'id',
+            'username',
+            'real_name',
+            'email',
+            'phone',
+            'user_role',
+            'status',
+            'avatar',
+            'signature',
+            'gender',
+            'birth_date',
+            'address',
         )
         read_only_fields = ('id', 'date_joined', 'date_updated')
 
@@ -50,7 +59,7 @@ class RegisterUserSerializer(Serializer):
             password=validated_data['password'],
             email=validated_data['email'],
             user_role=validated_data['roleType'],
-            avatar=validated_data['avatar']
+            avatar=validated_data['avatar'],
         )
         return user
 

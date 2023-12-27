@@ -9,9 +9,7 @@ from common.utils import in_blacklist, join_blacklist
 
 
 class TokenObtainPairSerializer(SimpleJwtTokenObtainPairSerializer):
-    default_error_messages = {
-        "no_active_account": "用户名或密码错误"
-    }
+    default_error_messages = {"no_active_account": "用户名或密码错误"}
 
     @classmethod
     def get_token(cls, user):
@@ -37,7 +35,7 @@ class TokenObtainPairSerializer(SimpleJwtTokenObtainPairSerializer):
         access_and_refresh = super().validate(attrs)
         data = {
             'accessToken': access_and_refresh.get('access'),
-            'refreshToken': access_and_refresh.get('refresh')
+            'refreshToken': access_and_refresh.get('refresh'),
         }
         # 获取Token对象
         # refresh = self.get_token(self.user)
@@ -48,7 +46,6 @@ class TokenObtainPairSerializer(SimpleJwtTokenObtainPairSerializer):
 
 
 class TokenRefreshSerializer(SimpleJwtTokenRefreshSerializer):
-
     def validate(self, attrs):
         """
         重写validate方法，判断refreshToken是否过期
@@ -63,5 +60,8 @@ class TokenRefreshSerializer(SimpleJwtTokenRefreshSerializer):
         data = super().validate(attrs)
 
         join_blacklist(refresh_token)
-        return {"code": Status.OK_200_SUCCESS.value[0], "msg": "刷新成功",
-                "data": {"accessToken": data['access'], "refreshToken": data['refresh']}}
+        return {
+            "code": Status.OK_200_SUCCESS.value[0],
+            "msg": "刷新成功",
+            "data": {"accessToken": data['access'], "refreshToken": data['refresh']},
+        }

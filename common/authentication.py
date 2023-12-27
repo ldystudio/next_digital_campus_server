@@ -22,7 +22,9 @@ class LoginModelBackend(ModelBackend):
         # if login_type not in ['emailLogin', 'imageLogin']:
         #     raise serializers.ValidationError('Invalid login type')
 
-        ver_code = request.data.get('emailCaptcha' if login_type == 'emailLogin' else 'captcha')
+        ver_code = request.data.get(
+            'emailCaptcha' if login_type == 'emailLogin' else 'captcha'
+        )
         if ver_code is None or trace_id is None:
             raise serializers.ValidationError('验证码不能为空')
 
@@ -33,7 +35,9 @@ class LoginModelBackend(ModelBackend):
         cache.expire(trace_id, timeout=0, version=captcha_type)
 
         try:
-            user = User.objects.get(Q(username=username) | Q(email=username) | Q(email=email))
+            user = User.objects.get(
+                Q(username=username) | Q(email=username) | Q(email=email)
+            )
         except User.DoesNotExist:
             raise serializers.ValidationError('账号没有注册')
 

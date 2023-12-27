@@ -7,7 +7,7 @@ class ImageCaptchaThrottle(SimpleRateThrottle):
     def get_cache_key(self, request, view):
         return self.cache_format % {
             'scope': self.scope,
-            'ident': self.get_ident(request)
+            'ident': self.get_ident(request),
         }
 
 
@@ -17,5 +17,5 @@ class EmailCaptchaThrottle(SimpleRateThrottle):
     def get_cache_key(self, request, view):
         return self.cache_format % {
             'scope': self.scope,
-            'ident': self.get_ident(request)
+            'ident': self.get_ident(request),
         }

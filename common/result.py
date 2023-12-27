@@ -41,7 +41,9 @@ class Status(Enum):
 
 
 class Result(Response):
-    def __init__(self, data=None, status=None, msg=None, code=None, header=None, exception=False):
+    def __init__(
+        self, data=None, status=None, msg=None, code=None, header=None, exception=False
+    ):
         """
         重写 Response ，实现 API 统一返回格式
         :param data: 返回数据
@@ -54,7 +56,7 @@ class Result(Response):
         self.data = {
             "code": code if code is not None else self.get_code(status, exception),
             "msg": msg if msg is not None else self.get_msg(status, exception),
-            "data": data
+            "data": data,
         }
         if header is not None:
             self.headers = {**self.headers, **header}
@@ -82,8 +84,17 @@ class Result(Response):
         """
         if exception:
             return Status.FAIL_500_INTERNAL_SERVER_ERROR.value[1]
-        return "请求成功" if status in [drf_status.HTTP_200_OK, drf_status.HTTP_201_CREATED,
-                                        drf_status.HTTP_202_ACCEPTED, drf_status.HTTP_204_NO_CONTENT] else "请求失败"
+        return (
+            "请求成功"
+            if status
+            in [
+                drf_status.HTTP_200_OK,
+                drf_status.HTTP_201_CREATED,
+                drf_status.HTTP_202_ACCEPTED,
+                drf_status.HTTP_204_NO_CONTENT,
+            ]
+            else "请求失败"
+        )
 
     # 成功响应
     @classmethod
@@ -99,44 +110,70 @@ class Result(Response):
         return cls(code=code, msg=msg, data=data, status=status)
 
     @classmethod
-    def OK_200_SUCCESS(cls,
-                       data=None,
-                       msg=Status.OK_200_SUCCESS.value[1],
-                       code=Status.OK_200_SUCCESS.value[0]):
+    def OK_200_SUCCESS(
+        cls,
+        data=None,
+        msg=Status.OK_200_SUCCESS.value[1],
+        code=Status.OK_200_SUCCESS.value[0],
+    ):
         return cls.OK(code=code, msg=msg, data=data, status=drf_status.HTTP_200_OK)
 
     @classmethod
-    def OK_201_CREATED(cls,
-                       data=None,
-                       msg=Status.OK_201_CREATED.value[1],
-                       code=Status.OK_201_CREATED.value[0]):
+    def OK_201_CREATED(
+        cls,
+        data=None,
+        msg=Status.OK_201_CREATED.value[1],
+        code=Status.OK_201_CREATED.value[0],
+    ):
         return cls.OK(code=code, msg=msg, data=data, status=drf_status.HTTP_201_CREATED)
 
     @classmethod
-    def OK_202_ACCEPTED(cls,
-                        data=None,
-                        msg=Status.OK_202_ACCEPTED.value[1],
-                        code=Status.OK_202_ACCEPTED.value[0]):
-        return cls.OK(code=code, msg=msg, data=data, status=drf_status.HTTP_202_ACCEPTED)
+    def OK_202_ACCEPTED(
+        cls,
+        data=None,
+        msg=Status.OK_202_ACCEPTED.value[1],
+        code=Status.OK_202_ACCEPTED.value[0],
+    ):
+        return cls.OK(
+            code=code, msg=msg, data=data, status=drf_status.HTTP_202_ACCEPTED
+        )
 
     @classmethod
-    def OK_203_REFRESH_TOKEN(cls,
-                             data=None,
-                             msg=Status.OK_203_REFRESH_TOKEN.value[1],
-                             code=Status.OK_203_REFRESH_TOKEN.value[0]):
-        return cls.OK(code=code, msg=msg, data=data, status=drf_status.HTTP_203_NON_AUTHORITATIVE_INFORMATION)
+    def OK_203_REFRESH_TOKEN(
+        cls,
+        data=None,
+        msg=Status.OK_203_REFRESH_TOKEN.value[1],
+        code=Status.OK_203_REFRESH_TOKEN.value[0],
+    ):
+        return cls.OK(
+            code=code,
+            msg=msg,
+            data=data,
+            status=drf_status.HTTP_203_NON_AUTHORITATIVE_INFORMATION,
+        )
 
     # 修改、删除
     @classmethod
-    def OK_204_NO_CONTENT(cls,
-                          data=None,
-                          msg=Status.OK_204_NO_CONTENT.value[1],
-                          code=Status.OK_204_NO_CONTENT.value[0]):
-        return cls.OK(code=code, msg=msg, data=data, status=drf_status.HTTP_204_NO_CONTENT)
+    def OK_204_NO_CONTENT(
+        cls,
+        data=None,
+        msg=Status.OK_204_NO_CONTENT.value[1],
+        code=Status.OK_204_NO_CONTENT.value[0],
+    ):
+        return cls.OK(
+            code=code, msg=msg, data=data, status=drf_status.HTTP_204_NO_CONTENT
+        )
 
     # 失败响应
     @classmethod
-    def FAIL(cls, msg=None, code=None, data=None, status=drf_status.HTTP_400_BAD_REQUEST, header=None):
+    def FAIL(
+        cls,
+        msg=None,
+        code=None,
+        data=None,
+        status=drf_status.HTTP_400_BAD_REQUEST,
+        header=None,
+    ):
         """
         失败响应的返回信息封装
         :param header: 需要返回的头信息
@@ -149,92 +186,156 @@ class Result(Response):
         return cls(data=data, msg=msg, code=code, status=status, header=header)
 
     @classmethod
-    def FAIL_400_INVALID_PARAM(cls,
-                               msg=Status.FAIL_400_INVALID_PARAM.value[1],
-                               code=Status.FAIL_400_INVALID_PARAM.value[0],
-                               data=None):
-        return cls.FAIL(code=code, msg=msg, data=data, status=drf_status.HTTP_400_BAD_REQUEST)
+    def FAIL_400_INVALID_PARAM(
+        cls,
+        msg=Status.FAIL_400_INVALID_PARAM.value[1],
+        code=Status.FAIL_400_INVALID_PARAM.value[0],
+        data=None,
+    ):
+        return cls.FAIL(
+            code=code, msg=msg, data=data, status=drf_status.HTTP_400_BAD_REQUEST
+        )
 
     @classmethod
-    def FAIL_400_OPERATION(cls,
-                           msg=Status.FAIL_400_OPERATION.value[1],
-                           code=Status.FAIL_400_OPERATION.value[0],
-                           data=None):
-        return cls.FAIL(code=code, msg=msg, data=data, status=drf_status.HTTP_400_BAD_REQUEST)
+    def FAIL_400_OPERATION(
+        cls,
+        msg=Status.FAIL_400_OPERATION.value[1],
+        code=Status.FAIL_400_OPERATION.value[0],
+        data=None,
+    ):
+        return cls.FAIL(
+            code=code, msg=msg, data=data, status=drf_status.HTTP_400_BAD_REQUEST
+        )
 
     @classmethod
-    def FAIL_401_INVALID_TOKEN(cls,
-                               msg=Status.FAIL_401_INVALID_TOKEN.value[1],
-                               code=Status.FAIL_401_INVALID_TOKEN.value[0],
-                               data=None):
-        return cls.FAIL(code=code, msg=msg, data=data, status=drf_status.HTTP_401_UNAUTHORIZED)
+    def FAIL_401_INVALID_TOKEN(
+        cls,
+        msg=Status.FAIL_401_INVALID_TOKEN.value[1],
+        code=Status.FAIL_401_INVALID_TOKEN.value[0],
+        data=None,
+    ):
+        return cls.FAIL(
+            code=code, msg=msg, data=data, status=drf_status.HTTP_401_UNAUTHORIZED
+        )
 
     @classmethod
-    def FAIL_401_AUTHENTICATION(cls,
-                                msg=Status.FAIL_401_AUTHENTICATION.value[1],
-                                code=Status.FAIL_401_AUTHENTICATION.value[0],
-                                data=None):
-        return cls.FAIL(code=code, msg=msg, data=data, status=drf_status.HTTP_401_UNAUTHORIZED)
+    def FAIL_401_AUTHENTICATION(
+        cls,
+        msg=Status.FAIL_401_AUTHENTICATION.value[1],
+        code=Status.FAIL_401_AUTHENTICATION.value[0],
+        data=None,
+    ):
+        return cls.FAIL(
+            code=code, msg=msg, data=data, status=drf_status.HTTP_401_UNAUTHORIZED
+        )
 
     @classmethod
-    def FAIL_401_INVALID_ACCOUNT(cls,
-                                 msg=Status.FAIL_401_INVALID_ACCOUNT.value[1],
-                                 code=Status.FAIL_401_INVALID_ACCOUNT.value[0],
-                                 data=None):
-        return cls.FAIL(code=code, msg=msg, data=data, status=drf_status.HTTP_401_UNAUTHORIZED)
+    def FAIL_401_INVALID_ACCOUNT(
+        cls,
+        msg=Status.FAIL_401_INVALID_ACCOUNT.value[1],
+        code=Status.FAIL_401_INVALID_ACCOUNT.value[0],
+        data=None,
+    ):
+        return cls.FAIL(
+            code=code, msg=msg, data=data, status=drf_status.HTTP_401_UNAUTHORIZED
+        )
 
     @classmethod
-    def FAIL_403_NO_PERMISSION(cls,
-                               msg=Status.FAIL_403_NO_PERMISSION.value[1],
-                               code=Status.FAIL_403_NO_PERMISSION.value[0],
-                               data=None):
-        return cls.FAIL(code=code, msg=msg, data=data, status=drf_status.HTTP_403_FORBIDDEN)
+    def FAIL_403_NO_PERMISSION(
+        cls,
+        msg=Status.FAIL_403_NO_PERMISSION.value[1],
+        code=Status.FAIL_403_NO_PERMISSION.value[0],
+        data=None,
+    ):
+        return cls.FAIL(
+            code=code, msg=msg, data=data, status=drf_status.HTTP_403_FORBIDDEN
+        )
 
     @classmethod
-    def FAIL_404_NOT_FOUND(cls,
-                           msg=Status.FAIL_404_NOT_FOUND.value[1],
-                           code=Status.FAIL_404_NOT_FOUND.value[0],
-                           data=None):
-        return cls.FAIL(code=code, msg=msg, data=data, status=drf_status.HTTP_404_NOT_FOUND)
+    def FAIL_404_NOT_FOUND(
+        cls,
+        msg=Status.FAIL_404_NOT_FOUND.value[1],
+        code=Status.FAIL_404_NOT_FOUND.value[0],
+        data=None,
+    ):
+        return cls.FAIL(
+            code=code, msg=msg, data=data, status=drf_status.HTTP_404_NOT_FOUND
+        )
 
     @classmethod
-    def FAIL_408_REQUEST_TIMEOUT(cls,
-                                 msg=Status.FAIL_408_REQUEST_TIMEOUT.value[1],
-                                 code=Status.FAIL_408_REQUEST_TIMEOUT.value[0],
-                                 data=None):
-        return cls.FAIL(code=code, msg=msg, data=data, status=drf_status.HTTP_408_REQUEST_TIMEOUT)
+    def FAIL_408_REQUEST_TIMEOUT(
+        cls,
+        msg=Status.FAIL_408_REQUEST_TIMEOUT.value[1],
+        code=Status.FAIL_408_REQUEST_TIMEOUT.value[0],
+        data=None,
+    ):
+        return cls.FAIL(
+            code=code, msg=msg, data=data, status=drf_status.HTTP_408_REQUEST_TIMEOUT
+        )
 
     @classmethod
-    def FAIL_415_UNSUPPORTED_MEDIA_TYPE(cls,
-                                        msg=Status.FAIL_415_UNSUPPORTED_MEDIA_TYPE.value[1],
-                                        code=Status.FAIL_415_UNSUPPORTED_MEDIA_TYPE.value[0],
-                                        data=None):
-        return cls.FAIL(code=code, msg=msg, data=data, status=drf_status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
+    def FAIL_415_UNSUPPORTED_MEDIA_TYPE(
+        cls,
+        msg=Status.FAIL_415_UNSUPPORTED_MEDIA_TYPE.value[1],
+        code=Status.FAIL_415_UNSUPPORTED_MEDIA_TYPE.value[0],
+        data=None,
+    ):
+        return cls.FAIL(
+            code=code,
+            msg=msg,
+            data=data,
+            status=drf_status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+        )
 
     @classmethod
-    def FAIL_422_UNPROCESSABLE_ENTITY(cls,
-                                      msg=Status.FAIL_422_UNPROCESSABLE_ENTITY.value[1],
-                                      code=Status.FAIL_422_UNPROCESSABLE_ENTITY.value[0],
-                                      data=None):
-        return cls.FAIL(code=code, msg=msg, data=data, status=drf_status.HTTP_422_UNPROCESSABLE_ENTITY)
+    def FAIL_422_UNPROCESSABLE_ENTITY(
+        cls,
+        msg=Status.FAIL_422_UNPROCESSABLE_ENTITY.value[1],
+        code=Status.FAIL_422_UNPROCESSABLE_ENTITY.value[0],
+        data=None,
+    ):
+        return cls.FAIL(
+            code=code,
+            msg=msg,
+            data=data,
+            status=drf_status.HTTP_422_UNPROCESSABLE_ENTITY,
+        )
 
     @classmethod
-    def FAIL_429_TOO_MANY_REQUESTS(cls,
-                                   msg=Status.FAIL_429_TOO_MANY_REQUESTS.value[1],
-                                   code=Status.FAIL_429_TOO_MANY_REQUESTS.value[0],
-                                   data=None):
-        return cls.FAIL(code=code, msg=msg, data=data, status=drf_status.HTTP_429_TOO_MANY_REQUESTS)
+    def FAIL_429_TOO_MANY_REQUESTS(
+        cls,
+        msg=Status.FAIL_429_TOO_MANY_REQUESTS.value[1],
+        code=Status.FAIL_429_TOO_MANY_REQUESTS.value[0],
+        data=None,
+    ):
+        return cls.FAIL(
+            code=code, msg=msg, data=data, status=drf_status.HTTP_429_TOO_MANY_REQUESTS
+        )
 
     @classmethod
-    def FAIL_500_INTERNAL_SERVER_ERROR(cls,
-                                       msg=Status.FAIL_500_INTERNAL_SERVER_ERROR.value[1],
-                                       code=Status.FAIL_500_INTERNAL_SERVER_ERROR.value[0],
-                                       data=None):
-        return cls.FAIL(code=code, msg=msg, data=data, status=drf_status.HTTP_500_INTERNAL_SERVER_ERROR)
+    def FAIL_500_INTERNAL_SERVER_ERROR(
+        cls,
+        msg=Status.FAIL_500_INTERNAL_SERVER_ERROR.value[1],
+        code=Status.FAIL_500_INTERNAL_SERVER_ERROR.value[0],
+        data=None,
+    ):
+        return cls.FAIL(
+            code=code,
+            msg=msg,
+            data=data,
+            status=drf_status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
 
     @classmethod
-    def FAIL_503_SERVICE_UNAVAILABLE(cls,
-                                     msg=Status.FAIL_503_SERVICE_UNAVAILABLE.value[1],
-                                     code=Status.FAIL_503_SERVICE_UNAVAILABLE.value[0],
-                                     data=None):
-        return cls.FAIL(code=code, msg=msg, data=data, status=drf_status.HTTP_503_SERVICE_UNAVAILABLE)
+    def FAIL_503_SERVICE_UNAVAILABLE(
+        cls,
+        msg=Status.FAIL_503_SERVICE_UNAVAILABLE.value[1],
+        code=Status.FAIL_503_SERVICE_UNAVAILABLE.value[0],
+        data=None,
+    ):
+        return cls.FAIL(
+            code=code,
+            msg=msg,
+            data=data,
+            status=drf_status.HTTP_503_SERVICE_UNAVAILABLE,
+        )

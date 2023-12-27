@@ -25,9 +25,18 @@ def in_blacklist(token):
 
 def join_blacklist(token):
     token = serializer_token(token)
-    token_type, jti, exp = token.payload['token_type'], token.payload['jti'], token.payload['exp']
+    token_type, jti, exp = (
+        token.payload['token_type'],
+        token.payload['jti'],
+        token.payload['exp'],
+    )
     now = datetime_to_epoch(aware_utcnow())
-    cache.add(token_type + '_jti=' + jti, str(token).split('.')[-1], timeout=exp - now, version='Blacklist')
+    cache.add(
+        token_type + '_jti=' + jti,
+        str(token).split('.')[-1],
+        timeout=exp - now,
+        version='Blacklist',
+    )
 
 
 def serializer_token(token):
@@ -39,4 +48,6 @@ def serializer_token(token):
         elif token.split('.')[1].startswith('eyJ0b2tlbl90eXBlIjoiYWNjZXNzIi'):
             return AccessToken(token)
     else:
-        raise TypeError('token must be a str or a instance of RefreshToken or AccessToken')
+        raise TypeError(
+            'token must be a str or a instance of RefreshToken or AccessToken'
+        )

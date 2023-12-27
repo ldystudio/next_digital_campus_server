@@ -65,8 +65,7 @@ ROOT_URLCONF = 'server.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates']
-        ,
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -166,9 +165,7 @@ REST_FRAMEWORK = {
     # 分页
     'DEFAULT_PAGINATION_CLASS': 'common.pagination.PageNumberPagination',
     # 过滤
-    'DEFAULT_FILTER_BACKENDS': (
-        'django_filters.rest_framework.DjangoFilterBackend',
-    ),
+    'DEFAULT_FILTER_BACKENDS': ('django_filters.rest_framework.DjangoFilterBackend',),
     # 异常
     'EXCEPTION_HANDLER': 'common.exception.handler.exception_handler',
     # 文档

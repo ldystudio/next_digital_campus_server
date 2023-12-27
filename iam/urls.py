@@ -1,6 +1,10 @@
 from django.urls import path
 from rest_framework.routers import SimpleRouter
-from rest_framework_simplejwt.views import token_obtain_pair, token_verify, token_refresh
+from rest_framework_simplejwt.views import (
+    token_obtain_pair,
+    token_verify,
+    token_refresh,
+)
 
 from . import views
 
