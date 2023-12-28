@@ -1,11 +1,12 @@
-from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
+from rest_framework import mixins
+from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet, GenericViewSet
 from rest_framework_tracking.mixins import LoggingMixin
 
 from common.result import Result
 
 
-class ModelViewSetWithResult(LoggingMixin, ModelViewSet):
-    logging_methods = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']
+class ModelViewSetFormatResult(LoggingMixin, ModelViewSet):
+    logging_methods = ["GET", "POST", "PUT", "PATCH", "DELETE"]
 
     def list(self, request, *args, **kwargs):
         response = super().list(request, *args, **kwargs)
@@ -32,12 +33,22 @@ class ModelViewSetWithResult(LoggingMixin, ModelViewSet):
         return Result.OK_204_NO_CONTENT(data=response.data)
 
 
-class ReadOnlyModelViewSetWithResult(LoggingMixin, ReadOnlyModelViewSet):
-    logging_methods = ['GET']
+class ReadOnlyModelViewSetFormatResult(LoggingMixin, ReadOnlyModelViewSet):
+    logging_methods = ["GET"]
 
     def list(self, request, *args, **kwargs):
         response = super().list(request, *args, **kwargs)
         return Result.OK_200_SUCCESS(data=response.data)
+
+    def retrieve(self, request, *args, **kwargs):
+        response = super().retrieve(request, *args, **kwargs)
+        return Result.OK_200_SUCCESS(data=response.data)
+
+
+class RetrieveModelViewSetFormatResult(
+    LoggingMixin, mixins.RetrieveModelMixin, GenericViewSet
+):
+    logging_methods = ["GET"]
 
     def retrieve(self, request, *args, **kwargs):
         response = super().retrieve(request, *args, **kwargs)
