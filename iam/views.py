@@ -10,13 +10,12 @@ from django.core.validators import validate_email
 from django.http import HttpResponse
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
-from rest_framework.permissions import IsAdminUser
 from rest_framework.viewsets import ViewSet
 from rest_framework_tracking.mixins import LoggingMixin
 
 from common.authentication import JWTCookieAuthentication
 from common.captcha import generate_captcha
-from common.permissions import IsOwnerOperation
+from common.permissions import IsOwnerOperation, IsAdminUser
 from common.result import Result
 from common.throttling import ImageCaptchaThrottle, EmailCaptchaThrottle
 from common.utils import join_blacklist
