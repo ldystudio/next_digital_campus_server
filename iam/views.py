@@ -18,7 +18,7 @@ from common.captcha import generate_captcha
 from common.permissions import IsOwnerOperation, IsAdminUser
 from common.result import Result
 from common.throttling import ImageCaptchaThrottle, EmailCaptchaThrottle
-from common.utils.token import join_blacklist, remove_access_list
+from common.utils.token import remove_token_caches
 from common.viewsets import ModelViewSetFormatResult
 from .models import User
 from .serializer import RegisterUserSerializer, UserSerializer
@@ -75,12 +75,13 @@ class AuthViewSet(LoggingMixin, ViewSet):
     )
     def logout(self, request, *args, **kwargs):
         refresh_token = request.data.get("refresh")
+        access_token = request.COOKIES.get("accessToken")
 
         if refresh_token is None:
             raise ValidationError({"detail": "refresh: 该字段是必填项"})
 
-        join_blacklist(refresh_token)
-        remove_access_list(request.user.id)
+        remove_token_caches(access_token, request.user.id)
+        remove_token_caches(refresh_token, request.user.id)
 
         return Result.OK_204_NO_CONTENT(msg="退出成功")
 
