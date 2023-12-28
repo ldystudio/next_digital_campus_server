@@ -1,13 +1,11 @@
-from rest_framework import serializers
 from rest_framework_simplejwt.serializers import (
     TokenObtainPairSerializer as SimpleJwtTokenObtainPairSerializer,
     TokenRefreshSerializer as SimpleJwtTokenRefreshSerializer,
 )
-from rest_framework_tracking.models import APIRequestLog
 
 from common.exception.exception import InBlacklist
 from common.result import Status
-from common.utils import in_blacklist, join_blacklist
+from common.utils.token import in_blacklist, join_blacklist, join_access_list
 
 
 class TokenObtainPairSerializer(SimpleJwtTokenObtainPairSerializer):
@@ -35,15 +33,18 @@ class TokenObtainPairSerializer(SimpleJwtTokenObtainPairSerializer):
         :return: 返回数据
         """
         access_and_refresh = super().validate(attrs)
+        access_token = access_and_refresh.get('access')
+        refresh_token = access_and_refresh.get('refresh')
         data = {
-            'accessToken': access_and_refresh.get('access'),
-            'refreshToken': access_and_refresh.get('refresh'),
+            'accessToken': access_token,
+            'refreshToken': refresh_token,
         }
         # 获取Token对象
         # refresh = self.get_token(self.user)
         # data['expire'] = refresh.access_token.payload['exp']
         # data['username'] = self.user.username
         # data['email'] = self.user.email
+        join_access_list(access_token, self.user.id)
         return {"code": Status.OK_200_SUCCESS.value[0], "msg": "登录成功", "data": data}
 
 
@@ -67,9 +68,3 @@ class TokenRefreshSerializer(SimpleJwtTokenRefreshSerializer):
             "msg": "刷新成功",
             "data": {"accessToken": data['access'], "refreshToken": data['refresh']},
         }
-
-
-class APIRequestLogSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = APIRequestLog
-        fields = '__all__'
