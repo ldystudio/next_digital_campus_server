@@ -1,4 +1,4 @@
-from rest_framework.viewsets import ModelViewSet
+from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 from rest_framework_tracking.mixins import LoggingMixin
 
 from common.result import Result
@@ -30,3 +30,15 @@ class ModelViewSetWithResult(LoggingMixin, ModelViewSet):
     def destroy(self, request, *args, **kwargs):
         response = super().destroy(request, *args, **kwargs)
         return Result.OK_204_NO_CONTENT(data=response.data)
+
+
+class ReadOnlyModelViewSetWithResult(LoggingMixin, ReadOnlyModelViewSet):
+    logging_methods = ['GET']
+
+    def list(self, request, *args, **kwargs):
+        response = super().list(request, *args, **kwargs)
+        return Result.OK_200_SUCCESS(data=response.data)
+
+    def retrieve(self, request, *args, **kwargs):
+        response = super().retrieve(request, *args, **kwargs)
+        return Result.OK_200_SUCCESS(data=response.data)

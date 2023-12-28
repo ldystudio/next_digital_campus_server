@@ -1,7 +1,9 @@
+from rest_framework import serializers
 from rest_framework_simplejwt.serializers import (
     TokenObtainPairSerializer as SimpleJwtTokenObtainPairSerializer,
     TokenRefreshSerializer as SimpleJwtTokenRefreshSerializer,
 )
+from rest_framework_tracking.models import APIRequestLog
 
 from common.exception.exception import InBlacklist
 from common.result import Status
@@ -65,3 +67,9 @@ class TokenRefreshSerializer(SimpleJwtTokenRefreshSerializer):
             "msg": "刷新成功",
             "data": {"accessToken": data['access'], "refreshToken": data['refresh']},
         }
+
+
+class APIRequestLogSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = APIRequestLog
+        fields = '__all__'

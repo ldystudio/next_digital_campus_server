@@ -1,7 +1,6 @@
 import snowflake.client
 from django.core.cache import cache
 from rest_framework import serializers
-from rest_framework.serializers import Serializer
 
 from iam.models import User
 
@@ -32,7 +31,7 @@ class UserSerializer(serializers.ModelSerializer):
         read_only_fields = ('id', 'date_joined', 'date_updated')
 
 
-class RegisterUserSerializer(Serializer):
+class RegisterUserSerializer(serializers.Serializer):
     username = serializers.CharField(required=True)
     password = serializers.CharField(required=True)
     email = serializers.EmailField(required=True)
