@@ -1,15 +1,17 @@
 from django.contrib.auth.backends import ModelBackend
 from django.core.cache import cache
 from django.db.models import Q
-from django.utils.translation import gettext_lazy as _
 from rest_framework import exceptions
 from rest_framework import serializers
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.exceptions import InvalidToken
 
 from common.exception.exception import InBlacklist
-from common.utils import in_blacklist
+from common.utils.token import in_blacklist, in_access_list
 from iam.models import User
+
+
+# from django.utils.translation import gettext_lazy as _
 
 
 # 自定义登录认证
@@ -56,15 +58,18 @@ class JWTCookieAuthentication(JWTAuthentication):
         try:
             validated_token = self.get_validated_token(token)
         except InvalidToken:
-            raise exceptions.AuthenticationFailed(_("无效的token"))
+            raise exceptions.AuthenticationFailed("无效的token")
 
         user = self.get_user(validated_token)
 
         if not user:
-            raise exceptions.AuthenticationFailed(_("无效的token"))
+            raise exceptions.AuthenticationFailed("无效的token")
 
         if in_blacklist(validated_token):
-            raise InBlacklist(_("token已失效"))
+            raise InBlacklist("token已失效")
+
+        if not in_access_list(validated_token, user.id):
+            raise exceptions.AuthenticationFailed("token已失效")
 
         return user, validated_token
 
