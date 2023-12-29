@@ -40,7 +40,7 @@ CACHES = {
 # https://docs.djangoproject.com/zh-hans/4.2/ref/settings/#std-setting-EMAIL_BACKEND
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 # 邮箱SMTP服务器地址
-EMAIL_HOST = 'smtp.xxx.com'
+EMAIL_HOST = 'smtp.qq.com'
 # 邮箱SMTP服务端口
 EMAIL_PORT = 25
 # 发送邮件的邮箱
