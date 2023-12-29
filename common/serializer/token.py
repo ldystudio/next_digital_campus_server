@@ -1,4 +1,4 @@
-from rest_framework import exceptions
+from rest_framework_simplejwt.exceptions import AuthenticationFailed
 from rest_framework_simplejwt.serializers import (
     TokenObtainPairSerializer as SimpleJwtTokenObtainPairSerializer,
     TokenRefreshSerializer as SimpleJwtTokenRefreshSerializer,
@@ -64,7 +64,7 @@ class TokenRefreshSerializer(SimpleJwtTokenRefreshSerializer):
         user_id = serializer_token(old_refresh_token).payload.get("userId")
 
         if not in_token_caches(old_refresh_token, user_id):
-            raise exceptions.AuthenticationFailed("refreshToken已失效，请重新登录")
+            raise AuthenticationFailed("登录已过期")
 
         access_token = data["access"]
         refresh_token = data["refresh"]

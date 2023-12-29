@@ -1,10 +1,9 @@
 from django.contrib.auth.backends import ModelBackend
 from django.core.cache import cache
 from django.db.models import Q
-from rest_framework import exceptions
 from rest_framework import serializers
 from rest_framework_simplejwt.authentication import JWTAuthentication
-from rest_framework_simplejwt.exceptions import InvalidToken
+from rest_framework_simplejwt.exceptions import InvalidToken, AuthenticationFailed
 
 from common.utils.token import in_token_caches
 from iam.models import User
@@ -59,15 +58,15 @@ class JWTCookieAuthentication(JWTAuthentication):
         try:
             validated_token = self.get_validated_token(token)
         except InvalidToken:
-            raise exceptions.AuthenticationFailed("无效的token")
+            raise AuthenticationFailed("无效的token")
 
         user = self.get_user(validated_token)
 
         if not user:
-            raise exceptions.AuthenticationFailed("无效的token")
+            raise AuthenticationFailed("无效的token")
 
         if not in_token_caches(validated_token, user.id):
-            raise exceptions.AuthenticationFailed("token已失效")
+            raise InvalidToken("token已失效")
 
         return user, validated_token
 

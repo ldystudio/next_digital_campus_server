@@ -11,14 +11,19 @@ from django.http import HttpResponse
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from rest_framework.viewsets import ViewSet
+from rest_framework_simplejwt.views import (
+    TokenRefreshView as SimpleTokenRefreshView,
+    TokenObtainPairView,
+)
 from rest_framework_tracking.mixins import LoggingMixin
+from rest_framework_tracking.models import APIRequestLog
 
 from common.authentication import JWTCookieAuthentication
 from common.captcha import generate_captcha
 from common.permissions import IsOwnerOperation, IsAdminUser
 from common.result import Result
 from common.throttling import ImageCaptchaThrottle, EmailCaptchaThrottle
-from common.utils.token import remove_token_caches
+from common.utils.token import remove_token_caches, serializer_token
 from common.viewsets import ModelViewSetFormatResult
 from .models import User
 from .serializer import RegisterUserSerializer, UserSerializer
@@ -65,7 +70,7 @@ class AuthViewSet(LoggingMixin, ViewSet):
         mail.send_mail(
             subject="验证码",
             message=message,
-            from_email="1187551003@qq.com",
+            from_email="nextdigitalcampus@qq.com",
             recipient_list=[recipient],
         )
         return Result.OK_200_SUCCESS(msg="验证码发送成功")
@@ -92,6 +97,25 @@ class AuthViewSet(LoggingMixin, ViewSet):
             serializer.save()
             return Result.OK_201_CREATED(msg="注册成功")
         return Result.FAIL_400_OPERATION(data=serializer.errors)
+
+
+class LoginView(LoggingMixin, TokenObtainPairView):
+    logging_methods = ["POST"]
+
+    def handle_log(self):
+        log = APIRequestLog(**self.log)
+        log.username_persistent = self.request.data.get("username") or "Anonymous"
+        log.save()
+
+
+class TokenRefreshView(LoggingMixin, SimpleTokenRefreshView):
+    logging_methods = ["POST"]
+
+    def handle_log(self):
+        log = APIRequestLog(**self.log)
+        refresh_token = serializer_token(self.request.data.get("refresh"))
+        log.username_persistent = refresh_token.payload.get("userName") or "Anonymous"
+        log.save()
 
 
 class UserViewSet(ModelViewSetFormatResult):
