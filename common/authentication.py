@@ -55,11 +55,7 @@ class JWTCookieAuthentication(JWTAuthentication):
         if token is None:
             return None
 
-        try:
-            validated_token = self.get_validated_token(token)
-        except InvalidToken:
-            raise AuthenticationFailed("无效的token")
-
+        validated_token = self.get_validated_token(token)
         user = self.get_user(validated_token)
 
         if not user:
