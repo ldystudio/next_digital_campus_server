@@ -46,6 +46,8 @@ INSTALLED_APPS = [
     "corsheaders",
     "common.apps.CommonConfig",
     "iam.apps.IamConfig",
+    "student.apps.StudentConfig",
+    "teacher.apps.TeacherConfig",
 ]
 
 MIDDLEWARE = [
@@ -174,7 +176,7 @@ REST_FRAMEWORK = {
 
 SIMPLE_JWT = {
     # accessToken有效期
-    "ACCESS_TOKEN_LIFETIME": timedelta(hours=12),
+    "ACCESS_TOKEN_LIFETIME": timedelta(hours=1),
     # refreshToken有效期
     "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
     # 刷新accessToken时是否重新生成refreshToken

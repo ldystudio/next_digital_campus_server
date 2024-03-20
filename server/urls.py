@@ -27,6 +27,8 @@ urlpatterns = [
     # path('admin/', admin.site.urls),
     # path('docs/', include_docs_urls(title='DRF Api文档', description='Django')),
     path('api/v1/auth/', include('iam.urls')),
+    path('api/v1/student/', include('student.urls')),
+    path('api/v1/teacher/', include('teacher.urls')),
     path('api/v1/', include('common.urls')),
 ]
 

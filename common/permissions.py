@@ -1,23 +1,33 @@
 from rest_framework.permissions import BasePermission, IsAuthenticated
 
 
-class IsOwnerOperation(BasePermission):
-    message = '只能操作自己的账户'
+class IsOwnerAccount(BasePermission):
+    message = "只能操作自己的账户"
 
     def has_object_permission(self, request, view, obj):
         return obj.id == request.user.id
 
 
+class IsOwnerOperation(IsAuthenticated):
+    message = "只能对自己的实体操作"
+
+    def has_object_permission(self, request, view, obj):
+        # 管理员可以操作所有实体
+        if request.user.user_role == "admin":
+            return True
+        return obj.user.id == request.user.id
+
+
 class IsAdminUser(IsAuthenticated):
     def has_permission(self, request, view):
         return (
-            super().has_permission(request, view) and request.user.user_role == 'admin'
+            super().has_permission(request, view) and request.user.user_role == "admin"
         )
 
 
 class IsAdminOrTeacherUser(IsAuthenticated):
     def has_permission(self, request, view):
         return super().has_permission(request, view) and request.user.user_role in [
-            'admin',
-            'teacher',
+            "admin",
+            "teacher",
         ]

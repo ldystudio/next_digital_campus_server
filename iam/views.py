@@ -20,13 +20,13 @@ from rest_framework_tracking.models import APIRequestLog
 
 from common.authentication import JWTCookieAuthentication
 from common.captcha import generate_captcha
-from common.permissions import IsOwnerOperation, IsAdminUser
+from common.permissions import IsOwnerAccount, IsAdminUser
 from common.result import Result
 from common.throttling import ImageCaptchaThrottle, EmailCaptchaThrottle
 from common.utils.token import remove_token_caches, serializer_token
 from common.viewsets import ModelViewSetFormatResult
 from .models import User
-from .serializer import RegisterUserSerializer, UserSerializer
+from .serializers import RegisterUserSerializer, UserSerializer
 
 
 class AuthViewSet(LoggingMixin, ViewSet):
@@ -121,7 +121,7 @@ class TokenRefreshView(LoggingMixin, SimpleTokenRefreshView):
 class UserViewSet(ModelViewSetFormatResult):
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes = (IsOwnerOperation,)
+    permission_classes = (IsOwnerAccount,)
 
     def get_permissions(self):
         # 仅对“list”操作应用IsAdminUser权限
