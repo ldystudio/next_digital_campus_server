@@ -1,21 +1,19 @@
 import snowflake.client
-from django.core.cache import cache
+from pydash import pick
 from rest_framework import serializers
 
+from iam.models import User
 from iam.serializers import UserSerializer
-from .models import Information
-from pydash import pick
+from .models import Information, Enrollment, Attendance
 
 
 class StudentInformationSerializer(serializers.ModelSerializer):
     user = UserSerializer()
 
-    # 查询时将id转为字符串，以防id传输到前端精度丢失
     def to_representation(self, instance):
         ret = super().to_representation(instance)
         # 只保留user中的某些字段
         ret.update(pick(ret.pop("user"), ["real_name", "phone", "email", "avatar"]))
-        # 计算年龄
         return ret
 
     class Meta:
@@ -23,19 +21,75 @@ class StudentInformationSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "user_id",
-            "class_name",
-            "date_of_admission",
             "guardian_name",
             "guardian_phone",
-            "enrollment_status",
             "photograph",
             "identification_number",
             "birth_date",
-            "address",
             "gender",
             "user",
         )
         read_only_fields = ("id", "date_joined", "date_updated")
+
+
+class StudentEnrollmentSerializer(serializers.ModelSerializer):
+    user = UserSerializer()
+
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+        # 查询时将id转为字符串，以防id传输到前端精度丢失
+        ret["id"] = str(ret["id"])
+        # 只保留user中的某些字段
+        ret.update(pick(ret.pop("user"), ["real_name", "email", "avatar"]))
+        return ret
+
+    class Meta:
+        model = Enrollment
+        fields = (
+            "id",
+            "user_id",
+            "class_name",
+            "date_of_admission",
+            "date_of_graduation",
+            "address",
+            "disciplinary_records",
+            "enrollment_status",
+            "notes",
+            "user",
+        )
+        read_only_fields = ("id", "date_joined", "date_updated")
+
+
+class StudentAttendanceSerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True)
+
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+        # 查询时将id转为字符串，以防id传输到前端精度丢失
+        ret["id"] = str(ret["id"])
+        # 只保留user中的某些字段
+        ret.update(pick(ret.pop("user"), ["real_name", "email", "avatar"]))
+        return ret
+
+    def validate(self, attrs):
+        request = self.context["request"]
+        # 得到user_id
+        user_id = request.data.get("user_id") or request.user.id
+        # 验证user_id是否存在请求体中
+        if not user_id:
+            raise serializers.ValidationError("缺少user_id")
+        # 验证user_id是否存在
+        if not User.objects.filter(id=user_id).exists():
+            raise serializers.ValidationError("用户不存在")
+        # 设置user_id列的值
+        attrs["id"] = snowflake.client.get_guid()
+        attrs["user_id"] = user_id
+        return attrs
+
+    class Meta:
+        model = Attendance
+        fields = "__all__"
+        read_only_fields = ("id",)
 
 
 # class RegisterUserSerializer(serializers.Serializer):

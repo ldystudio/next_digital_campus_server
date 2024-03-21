@@ -1,6 +1,6 @@
 from common.permissions import IsOwnerOperation, IsAdminUser
 from common.result import Result
-from common.viewsets import ModelViewSetFormatResult
+from common.viewsets import ReadWriteModelViewSetFormatResult
 from .filters import TeacherInformationFilter
 from .models import Information
 from .serializers import TeacherInformationSerializer
@@ -10,7 +10,7 @@ from iam.models import User
 
 
 # Create your views here.
-class TeacherInformationViewSet(ModelViewSetFormatResult):
+class TeacherInformationViewSet(ReadWriteModelViewSetFormatResult):
     queryset = Information.objects.all()
     serializer_class = TeacherInformationSerializer
     permission_classes = (IsOwnerOperation,)
@@ -20,9 +20,6 @@ class TeacherInformationViewSet(ModelViewSetFormatResult):
     def get_permissions(self):
         # 仅对“list”操作应用IsAdminUser权限
         return (IsAdminUser(),) if self.action == "list" else super().get_permissions()
-
-    def create(self, request, *args, **kwargs):
-        return Result.FAIL_403_NO_PERMISSION(msg="不支持POST请求")
 
     def split_data(self, request_data):
         user_data = {}

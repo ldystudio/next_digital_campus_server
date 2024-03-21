@@ -53,3 +53,25 @@ class RetrieveModelViewSetFormatResult(
     def retrieve(self, request, *args, **kwargs):
         response = super().retrieve(request, *args, **kwargs)
         return Result.OK_200_SUCCESS(data=response.data)
+
+
+class ReadWriteModelViewSetFormatResult(
+    LoggingMixin,
+    mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.UpdateModelMixin,
+    GenericViewSet,
+):
+    logging_methods = ["GET", "PATCH"]
+
+    def list(self, request, *args, **kwargs):
+        response = super().list(request, *args, **kwargs)
+        return Result.OK_200_SUCCESS(data=response.data)
+
+    def retrieve(self, request, *args, **kwargs):
+        response = super().retrieve(request, *args, **kwargs)
+        return Result.OK_200_SUCCESS(data=response.data)
+
+    def partial_update(self, request, *args, **kwargs):
+        response = super().partial_update(request, *args, **kwargs)
+        return Result.OK_202_ACCEPTED(data=response.data)

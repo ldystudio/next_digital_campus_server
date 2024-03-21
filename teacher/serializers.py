@@ -10,7 +10,6 @@ from pydash import pick
 class TeacherInformationSerializer(serializers.ModelSerializer):
     user = UserSerializer()
 
-    # 查询时将id转为字符串，以防id传输到前端精度丢失
     def to_representation(self, instance):
         ret = super().to_representation(instance)
         # 只保留user中的某些字段
