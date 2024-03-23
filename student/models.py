@@ -72,21 +72,16 @@ class Attendance(models.Model):
         verbose_name="考勤状态", choices=attendance_status_choices, default=1
     )
     check_in_time = models.TimeField(verbose_name="签到时间", auto_now=True)
-    late_time = models.DurationField(
+    late_time = models.TimeField(
         verbose_name="迟到时间",
         null=True,
     )
-    early_leave_time = models.DurationField(
+    early_leave_time = models.TimeField(
         verbose_name="早退时间",
         null=True,
     )
     # 病假、事假、年假
     leave_type_choices = ((1, "病假"), (2, "事假"), (3, "年假"))
-    leave_type = models.SmallIntegerField(
-        verbose_name="请假类型",
-        choices=attendance_status_choices,
-        null=True,
-    )
     leave_start_time = models.DateTimeField(
         verbose_name="请假开始时间",
         null=True,

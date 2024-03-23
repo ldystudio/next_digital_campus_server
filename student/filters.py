@@ -67,7 +67,6 @@ class StudentAttendanceFilter(django_filters.FilterSet):
         field_name="leave_start_time", lookup_expr="icontains"
     )
     attendance_status = django_filters.CharFilter(method="filter_attendance_status")
-    leave_type = django_filters.CharFilter(method="filter_leave_type")
 
     def filter_attendance_status(self, queryset, name, value):
         attendance_status = value.split(",")
@@ -85,7 +84,6 @@ class StudentAttendanceFilter(django_filters.FilterSet):
             "date",
             "check_in_time",
             "attendance_status",
-            "leave_type",
             "leave_start_time",
             "user_id",
         )

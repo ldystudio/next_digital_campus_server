@@ -20,9 +20,9 @@ class ModelViewSetFormatResult(LoggingMixin, ModelViewSet):
         response = super().create(request, *args, **kwargs)
         return Result.OK_201_CREATED(data=response.data)
 
-    # def update(self, request, *args, **kwargs):
-    #     response = super().update(request, *args, **kwargs)
-    #     return Result.OK_202_ACCEPTED(data=response.data)
+    def update(self, request, *args, **kwargs):
+        response = super().update(request, *args, **kwargs)
+        return Result.OK_202_ACCEPTED(data=response.data)
 
     def partial_update(self, request, *args, **kwargs):
         response = super().partial_update(request, *args, **kwargs)
@@ -30,7 +30,7 @@ class ModelViewSetFormatResult(LoggingMixin, ModelViewSet):
 
     def destroy(self, request, *args, **kwargs):
         response = super().destroy(request, *args, **kwargs)
-        return Result.OK_204_NO_CONTENT(data=response.data)
+        return Result.OK_202_ACCEPTED(data=response.data, msg="删除成功")
 
 
 class ReadOnlyModelViewSetFormatResult(LoggingMixin, ReadOnlyModelViewSet):

@@ -118,10 +118,6 @@ class StudentAttendanceViewSet(ModelViewSetFormatResult):
     filter_backends = (OrderingFilter, filters.DjangoFilterBackend)
     filterset_class = StudentAttendanceFilter
 
-    # def get_permissions(self):
-    #     # 仅对“list”操作应用IsAdminUser权限
-    #     return (IsAdminUser(),) if self.action == "list" else super().get_permissions()
-
     def split_data(self, request_data):
         user_data = {}
         attendance_data = {}
@@ -131,6 +127,19 @@ class StudentAttendanceViewSet(ModelViewSetFormatResult):
             elif key in self.serializer_class().get_fields():
                 attendance_data[key] = value
         return user_data, attendance_data
+
+    def list(self, request, *args, **kwargs):
+        # 只能查询自己的list
+        user = request.user
+        if user.user_role == "admin":
+            queryset = self.filter_queryset(self.get_queryset())
+        else:
+            queryset = self.filter_queryset(self.get_queryset().filter(user_id=user.id))
+        # 分页处理
+        page = self.paginate_queryset(queryset)
+        serializer = self.get_serializer(page, many=True)
+        page_response = self.get_paginated_response(serializer.data)
+        return Result.OK_200_SUCCESS(data=page_response.data)
 
     def partial_update(self, request, *args, **kwargs):
         try:
