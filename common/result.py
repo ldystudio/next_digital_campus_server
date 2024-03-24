@@ -54,8 +54,8 @@ class Result(Response):
         """
         super().__init__(None, status=status)
         self.data = {
-            "code": code if code is not None else self.get_code(status, exception),
-            "msg": msg if msg is not None else self.get_msg(status, exception),
+            "code": code or self.get_code(status, exception),
+            "msg": msg or self.get_msg(status, exception),
             "data": data,
         }
         if header is not None:

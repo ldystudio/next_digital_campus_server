@@ -1,8 +1,10 @@
 import snowflake.client
 from django.core.cache import cache
 from rest_framework import serializers
-
+from django.db import transaction
 from iam.models import User
+from student import models as student_models
+from teacher import models as teacher_models
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -57,6 +59,20 @@ class RegisterUserSerializer(serializers.Serializer):
             user_role=validated_data["roleType"],
             avatar=validated_data["avatar"],
         )
+
+        user_role = user.user_role
+        if user_role == "student":
+            # 在事务中执行创建操作，确保两条条数据都创建成功
+            with transaction.atomic():
+                try:
+                    student_models.Information.objects.create(user=user)
+                    student_models.Enrollment.objects.create(user=user)
+                except Exception as e:
+                    # 如果有任何异常发生，回滚事务并返回错误响应
+                    transaction.set_rollback(True)
+                    raise serializers.ValidationError(e)
+        if user_role == "teacher":
+            teacher_models.Information.objects.create(user=user)
         return user
 
     def update(self, instance, validated_data):

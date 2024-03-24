@@ -7,5 +7,8 @@ router = SimpleRouter()
 router.register(
     "information", views.TeacherInformationViewSet, basename="TeacherInformation"
 )
-
+router.register("work", views.TeacherWorkViewSet, basename="TeacherWork")
+router.register(
+    "attendance", views.TeacherAttendanceViewSet, basename="TeacherAttendance"
+)
 urlpatterns = router.urls

@@ -72,10 +72,6 @@ class StudentAttendanceFilter(django_filters.FilterSet):
         attendance_status = value.split(",")
         return queryset.filter(attendance_status__in=attendance_status)
 
-    def filter_leave_type(self, queryset, name, value):
-        leave_type = value.split(",")
-        return queryset.filter(leave_type__in=leave_type)
-
     class Meta:
         model = Attendance
         fields = (
