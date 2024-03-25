@@ -12,6 +12,7 @@ services:
     environment:
       - MYSQL_ROOT_PASSWORD=LHY18337580372
       - TZ=Asia/Shanghai
+    restart: always
   redis:
     image: redis:6.2.10
     ports:
@@ -19,10 +20,15 @@ services:
     volumes:
       - /opt/software/redis/redis.conf:/etc/redis/redis.conf
       - /opt/software/redis/data:/data
+    command: redis-server /etc/redis/redis.conf
+    restart: always
   snowflake:
     build: ./snowflake
+    ports:
+      - "8910:8910"
     volumes:
-      - ./snowflake:/app/snowflake
+      - ./snowflake:/app
+    restart: always
   web:
     build: .
     command: [ "uwsgi", "--ini", "uwsgi.ini" ]
@@ -31,5 +37,7 @@ services:
     ports:
       - "8000:8000"
     depends_on:
-      - db
+      - snowflake
       - redis
+      - db
+    restart: always
