@@ -47,3 +47,10 @@ EMAIL_PORT = 25
 EMAIL_HOST_USER = 'xxx@xxx.com'
 # 发送邮件的邮箱授权码
 EMAIL_HOST_PASSWORD = 'xxxxxxxxxxxxxx'
+
+# CORS跨域配置
+# 允许访问的域名
+CORS_ORIGIN_WHITELIST = (
+    "http://127.0.0.1:3000",
+    "http://localhost:3000"
+)
