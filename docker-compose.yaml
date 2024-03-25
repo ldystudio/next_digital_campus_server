@@ -1,0 +1,35 @@
+version: '3'
+
+services:
+  db:
+    image: mysql:8.0.31
+    ports:
+      - "3306:3306"
+    volumes:
+      - /opt/software/mysql/conf:/etc/mysql/conf.d
+      - /opt/software/mysql/data:/var/lib/mysql
+      - /opt/software/mysql/logs:/logs
+    environment:
+      - MYSQL_ROOT_PASSWORD=LHY18337580372
+      - TZ=Asia/Shanghai
+  redis:
+    image: redis:6.2.10
+    ports:
+      - "6379:6379"
+    volumes:
+      - /opt/software/redis/redis.conf:/etc/redis/redis.conf
+      - /opt/software/redis/data:/data
+  snowflake:
+    build: ./snowflake
+    volumes:
+      - ./snowflake:/app/snowflake
+  web:
+    build: .
+    command: [ "uwsgi", "--ini", "uwsgi.ini" ]
+    volumes:
+      - .:/code
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+      - redis
