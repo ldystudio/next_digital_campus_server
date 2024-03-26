@@ -10,8 +10,9 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
-from pathlib import Path
 from datetime import timedelta
+from pathlib import Path
+
 from expand import verifying_key, signing_key
 
 try:

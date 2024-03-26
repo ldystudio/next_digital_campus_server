@@ -27,6 +27,8 @@ services:
     volumes:
       - /opt/software/redis/redis.conf:/etc/redis/redis.conf
       - /opt/software/redis/data:/data
+    environment:
+      - TZ=Asia/Shanghai
     command: redis-server /etc/redis/redis.conf
     restart: always
   snowflake:
@@ -38,6 +40,8 @@ services:
       - 8910
     volumes:
       - ./snowflake:/app
+    environment:
+      - TZ=Asia/Shanghai
     restart: always
   web:
     build: .
