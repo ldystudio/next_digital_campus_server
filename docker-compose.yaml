@@ -31,11 +31,11 @@ services:
     restart: always
   web:
     build: .
-    command: [ "uwsgi", "--ini", "uwsgi.ini" ]
-    volumes:
-      - .:/code
     ports:
       - "8000:8000"
+    volumes:
+      - .:/code
+    command: uwsgi --ini /code/uwsgi.ini
     depends_on:
       - snowflake
       - redis
