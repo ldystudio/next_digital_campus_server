@@ -50,7 +50,7 @@ services:
       - .:/code
     environment:
       - TZ=Asia/Shanghai
-    command: uwsgi --ini /code/uwsgi.ini --uid ldy
+    command: uwsgi --ini /code/uwsgi.ini
     depends_on:
       - snowflake
       - redis
