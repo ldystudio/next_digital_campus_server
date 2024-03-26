@@ -15,4 +15,4 @@ RUN pip install pysnowflake -i https://pypi.tuna.tsinghua.edu.cn/simple
 ADD pysnowflask.log /app
 
 # 运行 snowflake_start_server 命令
-CMD ["snowflake_start_server", "--log_file_prefix=/app/pysnowflake.log"]
+CMD ["snowflake_start_server", "--address=0.0.0.0", "--log_file_prefix=/app/pysnowflake.log"]
