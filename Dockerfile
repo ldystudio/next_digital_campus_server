@@ -14,8 +14,11 @@ WORKDIR /code
 # 修改Alpine的镜像源并安装mysqlclient和uwsgi的依赖
 RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.tuna.tsinghua.edu.cn/g' /etc/apk/repositories \
     && apk update \
-    && apk add --update gcc python3-dev mysql-dev musl-dev \
+    && apk add --update gcc python3-dev mysql-dev musl-dev tzdata \
     && apk add --no-cache linux-headers
+
+RUN cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+RUN echo "Asia/Shanghai" > /etc/timezone
 
 # 安装依赖
 COPY ./requirements.txt /code/

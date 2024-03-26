@@ -9,6 +9,13 @@ ENV PYTHONUNBUFFERED 1
 # 设置工作目录
 WORKDIR /app
 
+RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.tuna.tsinghua.edu.cn/g' /etc/apk/repositories \
+    && apk update \
+    && apk add --update tzdata
+
+RUN cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+RUN echo "Asia/Shanghai" > /etc/timezone
+
 # 安装依赖
 RUN pip install pysnowflake -i https://pypi.tuna.tsinghua.edu.cn/simple
 
