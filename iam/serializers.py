@@ -8,11 +8,7 @@ from teacher import models as teacher_models
 
 
 class UserSerializer(serializers.ModelSerializer):
-    # 查询时将id转为字符串，以防id传输到前端精度丢失
-    def to_representation(self, instance):
-        ret = super().to_representation(instance)
-        ret["id"] = str(ret["id"])
-        return ret
+    id = serializers.CharField(read_only=True)
 
     class Meta:
         model = User
@@ -84,3 +80,17 @@ class RegisterUserSerializer(serializers.Serializer):
         # instance.save()
         # return instance
         pass
+
+
+class UserSimpleSerializer(serializers.ModelSerializer):
+    id = serializers.CharField(read_only=True)
+
+    class Meta:
+        model = User
+        fields = (
+            "id",
+            "real_name",
+            "email",
+            "avatar",
+        )
+        read_only_fields = ("id",)

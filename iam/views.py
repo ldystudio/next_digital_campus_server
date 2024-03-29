@@ -24,9 +24,9 @@ from common.permissions import IsOwnerAccount, IsAdminUser
 from common.result import Result
 from common.throttling import ImageCaptchaThrottle, EmailCaptchaThrottle
 from common.utils.token import remove_token_caches, serializer_token
-from common.viewsets import ModelViewSetFormatResult
+from common.viewsets import ModelViewSetFormatResult, ReadOnlyModelViewSetFormatResult
 from .models import User
-from .serializers import RegisterUserSerializer, UserSerializer
+from .serializers import RegisterUserSerializer, UserSerializer, UserSimpleSerializer
 
 
 class AuthViewSet(LoggingMixin, ViewSet):
@@ -123,9 +123,11 @@ class UserViewSet(ModelViewSetFormatResult):
     serializer_class = UserSerializer
     permission_classes = (IsOwnerAccount,)
 
-    def get_permissions(self):
-        # 仅对“list”操作应用IsAdminUser权限
-        return (IsAdminUser(),) if self.action == "list" else super().get_permissions()
-
     def create(self, request, *args, **kwargs):
         return Result.FAIL_403_NO_PERMISSION(msg="不支持POST请求")
+
+
+class UserSimpleViewSet(ReadOnlyModelViewSetFormatResult):
+    queryset = User.objects.all()
+    serializer_class = UserSimpleSerializer
+    filterset_fields = ("id", "user_role")

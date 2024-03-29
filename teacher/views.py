@@ -1,4 +1,10 @@
-from common.viewsets import ReadWriteModelViewSetFormatResult, ModelViewSetFormatResult
+from common.permissions import IsOwnerAccount
+from common.viewsets import (
+    ReadWriteModelViewSetFormatResult,
+    ModelViewSetFormatResult,
+    ReadOnlyModelViewSetFormatResult,
+)
+from iam.serializers import UserSimpleSerializer
 from .filters import (
     TeacherInformationFilter,
     TeacherAttendanceFilter,
@@ -9,6 +15,7 @@ from .serializers import (
     TeacherInformationSerializer,
     TeacherAttendanceSerializer,
     TeacherWorkSerializer,
+    TeacherSimpleSerializer,
 )
 
 
@@ -30,3 +37,9 @@ class TeacherAttendanceViewSet(ModelViewSetFormatResult):
     queryset = Attendance.objects.all()
     serializer_class = TeacherAttendanceSerializer
     filterset_class = TeacherAttendanceFilter
+
+
+class TeacherSimpleViewSet(ReadOnlyModelViewSetFormatResult):
+    queryset = Information.objects.all()
+    serializer_class = TeacherSimpleSerializer
+    filterset_fields = ("id",)

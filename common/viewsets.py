@@ -61,8 +61,8 @@ class ModelViewSetFormatResult(LoggingMixin, ModelViewSet):
         return Result.OK_202_ACCEPTED(data=response.data)
 
     def destroy(self, request, *args, **kwargs):
-        response = super().destroy(request, *args, **kwargs)
-        return Result.OK_202_ACCEPTED(data=response.data, msg="删除成功")
+        super().destroy(request, *args, **kwargs)
+        return Result.OK_202_ACCEPTED(msg="删除成功")
 
 
 class ReadWriteModelViewSetFormatResult(

@@ -7,6 +7,7 @@ from . import views
 router = SimpleRouter()
 router.register("user", views.UserViewSet, basename="iam")
 router.register("", views.AuthViewSet, basename="auth")
+router.register("simple", views.UserSimpleViewSet, basename="simple")
 
 urlpatterns = [
     path("login/", views.LoginView.as_view(), name="token_obtain_pair"),

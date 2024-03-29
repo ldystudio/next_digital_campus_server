@@ -7,24 +7,22 @@ from iam.serializers import UserSerializer
 
 
 class ForeignKeyUserSerializer(serializers.ModelSerializer):
+    id = serializers.CharField(read_only=True)
     user = UserSerializer()
 
     def to_representation(self, instance):
         ret = super().to_representation(instance)
-        # 查询时将id转为字符串，以防id传输到前端精度丢失
-        ret["id"] = str(ret["id"])
         # 只保留user中的某些字段
         ret.update(pick(ret.pop("user"), ["real_name", "phone", "email", "avatar"]))
         return ret
 
 
 class ForeignKeyUserWithAddSerializer(serializers.ModelSerializer):
+    id = serializers.CharField(read_only=True)
     user = UserSerializer(read_only=True)
 
     def to_representation(self, instance):
         ret = super().to_representation(instance)
-        # 查询时将id转为字符串，以防id传输到前端精度丢失
-        ret["id"] = str(ret["id"])
         # 只保留user中的某些字段
         ret.update(pick(ret.pop("user"), ["real_name", "email", "avatar"]))
         return ret

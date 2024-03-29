@@ -8,15 +8,19 @@ class Information(models.Model):
     gender = models.SmallIntegerField(
         db_comment="性别", choices=gender_choices, default=1
     )
-    birth_date = models.DateField(db_comment="出生日期", null=True)
-    guardian_name = models.CharField(db_comment="监护人姓名", max_length=100, null=True)
-    guardian_phone = models.CharField(db_comment="监护人联系电话", max_length=20, null=True)
+    birth_date = models.DateField(db_comment="出生日期", null=True, blank=True)
+    guardian_name = models.CharField(
+        db_comment="监护人姓名", max_length=100, null=True, blank=True
+    )
+    guardian_phone = models.CharField(
+        db_comment="监护人联系电话", max_length=20, null=True, blank=True
+    )
 
     identification_number = models.CharField(
-        db_comment="身份证件号码", max_length=20, null=True
+        db_comment="身份证件号码", max_length=20, null=True, blank=True
     )
     photograph = models.ImageField(
-        db_comment="照片", upload_to="student_photos/", null=True
+        db_comment="照片", upload_to="student_photos/", null=True, blank=True
     )
     date_joined = models.DateTimeField(auto_now_add=True)
     date_updated = models.DateTimeField(auto_now=True)
@@ -37,16 +41,16 @@ class Information(models.Model):
 
 
 class Enrollment(models.Model):
-    class_name = models.CharField(db_comment="班级", max_length=50, null=True)
-    date_of_admission = models.DateField(db_comment="入学日期", null=True)
-    date_of_graduation = models.DateField(db_comment="毕业日期", null=True)
-    address = models.CharField(db_comment="家庭住址", max_length=100, null=True)
+    class_name = models.CharField(db_comment="班级", max_length=50, null=True, blank=True)
+    date_of_admission = models.DateField(db_comment="入学日期", null=True, blank=True)
+    date_of_graduation = models.DateField(db_comment="毕业日期", null=True, blank=True)
+    address = models.CharField(db_comment="家庭住址", max_length=100, null=True, blank=True)
     disciplinary_records = models.TextField(db_comment="奖惩记录", default="无")
     status_choices = ((1, "在校"), (2, "休学"), (3, "毕业"))
     enrollment_status = models.SmallIntegerField(
         db_comment="就读状态", choices=status_choices, default=1
     )
-    notes = models.TextField(db_comment="备注", null=True)
+    notes = models.TextField(db_comment="备注", null=True, blank=True)
     date_joined = models.DateTimeField(auto_now_add=True)
     date_updated = models.DateTimeField(auto_now=True)
     user = models.OneToOneField(
@@ -92,7 +96,7 @@ class Attendance(models.Model):
         db_comment="请假理由",
         null=True,
     )
-    notes = models.TextField(db_comment="备注", null=True)
+    notes = models.TextField(db_comment="备注", null=True, blank=True)
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,

@@ -23,18 +23,17 @@ def exception_handler(exc, context):
     if response:
         error_msg = ""
         if isinstance(response.data, dict):
-            error_msg = response.data.get('detail', response.data or exc.detail or exc)
+            error_msg = response.data.get("detail", response.data or exc.detail or exc)
+            print(error_msg)
+            print(type(error_msg))
 
             if isinstance(error_msg, ReturnDict):
-                error_msg = '\u3000'.join(
-                    [
-                        (v[0] if '_' in k else f"{k}: {v[0]}")
-                        for k, v in error_msg.items()
-                    ]
+                error_msg = "\u3000".join(
+                    [f"{k}: {v[0]}" for k, v in error_msg.items()]
                 )
 
-            if response.data.get('code') == 'token_not_valid':
-                if context['view'].__class__.__name__ == 'TokenRefreshView':
+            if response.data.get("code") == "token_not_valid":
+                if context["view"].__class__.__name__ == "TokenRefreshView":
                     response = Result.FAIL_401_INVALID_TOKEN()
                 else:
                     response = Result.OK_203_REFRESH_TOKEN()
@@ -67,7 +66,7 @@ def exception_handler(exc, context):
 def handle_validation_errors(exc):
     # 映射不同类型的验证错误到相应的处理函数
     validation_errors = {
-        IntegrityError: lambda: Result.FAIL_400_INVALID_PARAM(_('用户名或邮箱已存在')),
+        IntegrityError: lambda: Result.FAIL_400_INVALID_PARAM(_("用户名或邮箱已存在")),
         ValidationError: lambda: Result.FAIL_400_INVALID_PARAM(exc.message),
         SMTPDataError: lambda: Result.FAIL_400_INVALID_PARAM(
             _("邮箱可能包含不存在的帐户，请检查收件人邮箱。")
