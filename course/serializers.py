@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from teacher.serializers import TeacherSimpleSerializer
-from .models import Setting
+from .models import Setting, Time
 
 
 class CourseSettingSerializer(serializers.ModelSerializer):
@@ -11,4 +11,11 @@ class CourseSettingSerializer(serializers.ModelSerializer):
     class Meta:
         model = Setting
         exclude = ("date_joined", "date_updated")
+        read_only_fields = ("id", "date_joined", "date_updated")
+
+
+class CourseTimeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Time
+        exclude = ("id", "date_joined", "date_updated")
         read_only_fields = ("id", "date_joined", "date_updated")

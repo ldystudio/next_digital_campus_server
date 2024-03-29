@@ -1,8 +1,8 @@
 from common.result import Result
-from common.viewsets import ModelViewSetFormatResult
+from common.viewsets import ModelViewSetFormatResult, ReadOnlyModelViewSetFormatResult
 from .filters import CourseSettingFilter
-from .models import Setting
-from .serializers import CourseSettingSerializer
+from .models import Setting, Time
+from .serializers import CourseSettingSerializer, CourseTimeSerializer
 
 
 # Create your views here.
@@ -31,3 +31,8 @@ class CourseSettingsViewSet(ModelViewSetFormatResult):
         # 在保存课程之前，将教师列表中的教师 ID 添加到课程的教师列表中
         serializer.save(teacher=teacher_ids)
         return Result.OK_201_CREATED(data=serializer.data)
+
+
+class CourseTimeViewSet(ReadOnlyModelViewSetFormatResult):
+    queryset = Time.objects.all()
+    serializer_class = CourseTimeSerializer

@@ -28,9 +28,12 @@ def exception_handler(exc, context):
             print(type(error_msg))
 
             if isinstance(error_msg, ReturnDict):
-                error_msg = "\u3000".join(
-                    [f"{k}: {v[0]}" for k, v in error_msg.items()]
-                )
+                if "non_field_errors" in error_msg:
+                    error_msg = error_msg["non_field_errors"][0]
+                else:
+                    error_msg = "\u3000".join(
+                        [f"{k}: {v[0]}" for k, v in error_msg.items()]
+                    )
 
             if response.data.get("code") == "token_not_valid":
                 if context["view"].__class__.__name__ == "TokenRefreshView":
