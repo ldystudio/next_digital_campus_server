@@ -1,11 +1,14 @@
 from rest_framework import serializers
 
+from classes.serializers import ClassInformationSerializer
 from iam.serializers import UserSimpleSerializer, UserSerializer
 from .models import Information, Attendance, Work
 from common.serializers import ForeignKeyUserSerializer, ForeignKeyUserWithAddSerializer
 
 
 class TeacherInformationSerializer(ForeignKeyUserSerializer):
+    classes = ClassInformationSerializer(many=True, read_only=True)
+
     class Meta:
         model = Information
         exclude = ("date_joined", "date_updated")

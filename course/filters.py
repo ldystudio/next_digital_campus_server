@@ -14,9 +14,6 @@ class CourseSettingFilter(django_filters.FilterSet):
         field_name="class_location", lookup_expr="icontains"
     )
     course_type = django_filters.CharFilter(method="filter_course_type")
-    applicable_classes = django_filters.CharFilter(
-        field_name="class_location", lookup_expr="icontains"
-    )
 
     def filter_course_type(self, queryset, name, value):
         course_type = value.split(",")
@@ -30,5 +27,4 @@ class CourseSettingFilter(django_filters.FilterSet):
             "course_name",
             "class_location",
             "course_type",
-            "applicable_classes",
         )

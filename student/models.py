@@ -1,6 +1,7 @@
 from django.db import models
 
 from iam.models import User
+from classes.models import Information as ClassInformation
 
 
 class Information(models.Model):
@@ -25,7 +26,7 @@ class Information(models.Model):
     date_joined = models.DateTimeField(auto_now_add=True)
     date_updated = models.DateTimeField(auto_now=True)
     user = models.OneToOneField(
-        User,
+        to=User,
         on_delete=models.CASCADE,
         related_name="student_information",
         db_comment="用户",
@@ -41,7 +42,6 @@ class Information(models.Model):
 
 
 class Enrollment(models.Model):
-    class_name = models.CharField(db_comment="班级", max_length=50, null=True, blank=True)
     date_of_admission = models.DateField(db_comment="入学日期", null=True, blank=True)
     date_of_graduation = models.DateField(db_comment="毕业日期", null=True, blank=True)
     address = models.CharField(db_comment="家庭住址", max_length=100, null=True, blank=True)
@@ -54,10 +54,16 @@ class Enrollment(models.Model):
     date_joined = models.DateTimeField(auto_now_add=True)
     date_updated = models.DateTimeField(auto_now=True)
     user = models.OneToOneField(
-        User,
+        to=User,
         on_delete=models.CASCADE,
         related_name="student_enrollment",
         db_comment="用户",
+    )
+    classes = models.ForeignKey(
+        to=ClassInformation,
+        on_delete=models.CASCADE,
+        related_name="class_information",
+        db_comment="班级",
     )
 
     def __str__(self):
@@ -98,7 +104,7 @@ class Attendance(models.Model):
     )
     notes = models.TextField(db_comment="备注", null=True, blank=True)
     user = models.ForeignKey(
-        User,
+        to=User,
         on_delete=models.CASCADE,
         related_name="student_attendance",
         db_comment="用户",

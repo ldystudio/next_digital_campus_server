@@ -1,6 +1,7 @@
 from django.db import models
 
 from teacher.models import Information
+from classes.models import Information as ClassInformation
 
 
 class Setting(models.Model):
@@ -14,7 +15,6 @@ class Setting(models.Model):
     course_type = models.SmallIntegerField(
         db_comment="课程类型", choices=course_type_choices, default=1
     )
-    applicable_classes = models.CharField(db_comment="适用班级", max_length=100)
     enrollment_limit = models.PositiveIntegerField(db_comment="选课人数限制", default=1000)
     course_duration = models.CharField(db_comment="课程时长", max_length=50, default="36学时")
     start_date = models.DateField(
@@ -28,7 +28,11 @@ class Setting(models.Model):
     date_updated = models.DateTimeField(auto_now=True)
     teacher = models.ManyToManyField(
         to=Information,
-        related_name="teacher_information",
+        related_name="course_teacher",
+    )
+    classes = models.ManyToManyField(
+        to=ClassInformation,
+        related_name="course_class",
     )
 
     def __str__(self):

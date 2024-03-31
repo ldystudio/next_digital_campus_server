@@ -115,7 +115,10 @@ class ReadWriteModelViewSetFormatResult(
 
         if model_data:
             for attr, val in model_data.items():
-                setattr(instance, attr, val)
+                if attr == "classes":  # 如果属性为 classes，则使用 set 方法
+                    instance.classes.set(val)
+                else:
+                    setattr(instance, attr, val)
             instance.save()
 
         serializer = self.get_serializer(instance)

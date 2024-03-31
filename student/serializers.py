@@ -1,3 +1,7 @@
+from pydash import pick
+from rest_framework import serializers
+
+from classes.serializers import ClassInformationSerializer
 from common.serializers import ForeignKeyUserSerializer, ForeignKeyUserWithAddSerializer
 from .models import Information, Enrollment, Attendance
 
@@ -20,12 +24,20 @@ class StudentInformationSerializer(ForeignKeyUserSerializer):
 
 
 class StudentEnrollmentSerializer(ForeignKeyUserSerializer):
+    classes_id = serializers.CharField(read_only=True)
+    classes = ClassInformationSerializer()
+
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+        ret["class_name"] = ret.pop("classes").get("class_name")
+        return ret
+
     class Meta:
         model = Enrollment
         fields = (
             "id",
             "user_id",
-            "class_name",
+            "classes_id",
             "date_of_admission",
             "date_of_graduation",
             "address",
@@ -33,6 +45,7 @@ class StudentEnrollmentSerializer(ForeignKeyUserSerializer):
             "enrollment_status",
             "notes",
             "user",
+            "classes",
         )
         read_only_fields = ("id", "date_joined", "date_updated")
 

@@ -1,5 +1,6 @@
 from django.db import models
 from iam.models import User
+from classes.models import Information as ClassInformation
 
 
 class Information(models.Model):
@@ -28,8 +29,10 @@ class Information(models.Model):
         related_name="teacher_information",
         db_comment="用户",
     )
-
-    # class_name = models.CharField(db_comment="班级", max_length=50)
+    classes = models.ManyToManyField(
+        to=ClassInformation,
+        related_name="teacher_class",
+    )
 
     def __str__(self):
         return self.user.username

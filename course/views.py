@@ -18,8 +18,12 @@ class CourseSettingsViewSet(ModelViewSetFormatResult):
         serializer.is_valid(raise_exception=True)
         # 获取请求中的教师 ID 列表
         teacher_ids = request.data.get("teacher", [])
+        classes_ids = request.data.get("classes", [])
         # 在保存课程之前，将教师列表中的教师 ID 添加到课程的教师列表中
-        instance.teacher.set(teacher_ids)
+        if teacher_ids:
+            instance.teacher.set(teacher_ids)
+        if classes_ids:
+            instance.classes.set(classes_ids)
         self.perform_update(serializer)
         return Result.OK_202_ACCEPTED(data=serializer.data)
 
@@ -28,8 +32,9 @@ class CourseSettingsViewSet(ModelViewSetFormatResult):
         serializer.is_valid(raise_exception=True)
         # 获取请求中的教师 ID 列表
         teacher_ids = request.data.get("teacher", [])
+        classes_ids = request.data.get("classes", [])
         # 在保存课程之前，将教师列表中的教师 ID 添加到课程的教师列表中
-        serializer.save(teacher=teacher_ids)
+        serializer.save(teacher=teacher_ids, classes=classes_ids)
         return Result.OK_201_CREATED(data=serializer.data)
 
 

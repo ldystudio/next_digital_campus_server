@@ -8,6 +8,7 @@ from iam.serializers import UserSerializer
 
 class ForeignKeyUserSerializer(serializers.ModelSerializer):
     id = serializers.CharField(read_only=True)
+    user_id = serializers.CharField(read_only=True)
     user = UserSerializer()
 
     def to_representation(self, instance):

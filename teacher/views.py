@@ -1,4 +1,5 @@
 from common.permissions import IsOwnerAccount
+from common.result import Result
 from common.viewsets import (
     ReadWriteModelViewSetFormatResult,
     ModelViewSetFormatResult,
@@ -17,6 +18,7 @@ from .serializers import (
     TeacherWorkSerializer,
     TeacherSimpleSerializer,
 )
+from classes.models import Information as ClassInformation
 
 
 # Create your views here.
