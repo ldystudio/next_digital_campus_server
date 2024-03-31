@@ -7,6 +7,9 @@ class TeacherInformationFilter(django_filters.FilterSet):
     real_name = django_filters.CharFilter(
         field_name="user__real_name", lookup_expr="icontains"
     )
+    class_name = django_filters.CharFilter(
+        field_name="classes__class_name", lookup_expr="icontains"
+    )
     phone = django_filters.CharFilter(field_name="user__phone", lookup_expr="icontains")
     identification_number = django_filters.CharFilter(
         field_name="identification_number", lookup_expr="icontains"
@@ -25,6 +28,7 @@ class TeacherInformationFilter(django_filters.FilterSet):
             "phone",
             "identification_number",
             "service_status",
+            "class_name",
             "user_id",
         )
 

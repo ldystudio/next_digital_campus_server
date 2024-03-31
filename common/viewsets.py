@@ -37,8 +37,8 @@ class ModelViewSetFormatResult(LoggingMixin, ModelViewSet):
     logging_methods = ["GET", "POST", "PUT", "PATCH", "DELETE"]
 
     def list(self, request, *args, **kwargs):
-        # 非管理员只能查询自己的list
         user = request.user
+        # 非管理员只能查询自己的list
         if user.user_role == "admin":
             queryset = self.filter_queryset(self.get_queryset())
         else:

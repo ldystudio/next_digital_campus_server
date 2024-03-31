@@ -16,7 +16,16 @@ class Setting(models.Model):
         db_comment="课程类型", choices=course_type_choices, default=1
     )
     enrollment_limit = models.PositiveIntegerField(db_comment="选课人数限制", default=1000)
-    course_duration = models.CharField(db_comment="课程时长", max_length=50, default="36学时")
+    day_choices = (
+        (1, "星期一"),
+        (2, "星期二"),
+        (3, "星期三"),
+        (4, "星期四"),
+        (5, "星期五"),
+        (6, "星期六"),
+        (7, "星期七"),
+    )
+    weekday = models.IntegerField(db_comment="上课星期", choices=day_choices, default=7)
     start_date = models.DateField(
         db_comment="课程开始日期",
     )

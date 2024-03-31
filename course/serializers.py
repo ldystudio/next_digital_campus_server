@@ -19,5 +19,5 @@ class CourseSettingSerializer(serializers.ModelSerializer):
 class CourseTimeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Time
-        exclude = ("id", "date_joined", "date_updated")
+        exclude = ("date_joined", "date_updated")
         read_only_fields = ("id", "date_joined", "date_updated")

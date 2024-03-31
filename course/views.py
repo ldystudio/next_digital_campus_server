@@ -1,13 +1,17 @@
+from django.shortcuts import get_object_or_404
+
+from common.pagination import UnlimitedPagination
 from common.result import Result
 from common.viewsets import ModelViewSetFormatResult, ReadOnlyModelViewSetFormatResult
 from .filters import CourseSettingFilter
 from .models import Setting, Time
 from .serializers import CourseSettingSerializer, CourseTimeSerializer
+from student.models import Enrollment
 
 
 # Create your views here.
 class CourseSettingsViewSet(ModelViewSetFormatResult):
-    queryset = Setting.objects.all()
+    queryset = Setting.objects.all().distinct()
     serializer_class = CourseSettingSerializer
     filterset_class = CourseSettingFilter
 
@@ -41,3 +45,19 @@ class CourseSettingsViewSet(ModelViewSetFormatResult):
 class CourseTimeViewSet(ReadOnlyModelViewSetFormatResult):
     queryset = Time.objects.all()
     serializer_class = CourseTimeSerializer
+    pagination_class = UnlimitedPagination
+
+
+class CourseScheduleViewSet(ReadOnlyModelViewSetFormatResult):
+    queryset = Setting.objects.all().distinct()
+    serializer_class = CourseSettingSerializer
+    pagination_class = UnlimitedPagination
+
+    def list(self, request, *args, **kwargs):
+        enrollment = get_object_or_404(Enrollment, user=request.user)
+        queryset = self.filter_queryset(
+            self.get_queryset().filter(classes=enrollment.classes)
+        )
+        serializer = self.get_serializer(self.paginate_queryset(queryset), many=True)
+        paginated_response = self.get_paginated_response(serializer.data)
+        return Result.OK_200_SUCCESS(data=paginated_response.data)

@@ -7,6 +7,9 @@ class CourseSettingFilter(django_filters.FilterSet):
     real_name = django_filters.CharFilter(
         field_name="teacher__user__real_name", lookup_expr="icontains"
     )
+    class_name = django_filters.CharFilter(
+        field_name="classes__class_name", lookup_expr="icontains"
+    )
     course_name = django_filters.CharFilter(
         field_name="course_name", lookup_expr="icontains"
     )
@@ -25,6 +28,7 @@ class CourseSettingFilter(django_filters.FilterSet):
             "id",
             "real_name",
             "course_name",
+            "class_name",
             "class_location",
             "course_type",
         )

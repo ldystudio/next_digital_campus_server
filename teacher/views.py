@@ -23,7 +23,7 @@ from classes.models import Information as ClassInformation
 
 # Create your views here.
 class TeacherInformationViewSet(ReadWriteModelViewSetFormatResult):
-    queryset = Information.objects.all()
+    queryset = Information.objects.all().distinct()
     serializer_class = TeacherInformationSerializer
     filterset_class = TeacherInformationFilter
     user_fields = ["real_name", "phone", "email", "avatar"]
