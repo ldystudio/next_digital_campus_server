@@ -1,12 +1,16 @@
 from django.db import models
 
-from teacher.models import Information
+from teacher.models import Information as TeacherInformation
+from student.models import Information as StudentInformation
 from classes.models import Information as ClassInformation
 
 
 class Setting(models.Model):
     course_name = models.CharField(db_comment="课程名称", max_length=100)
     course_description = models.TextField(db_comment="课程描述", null=True, blank=True)
+    course_picture = models.ImageField(
+        db_comment="课程图片", upload_to="course_picture", null=True, blank=True
+    )
     start_time = models.TimeField(db_comment="上课时间")
     end_time = models.TimeField(db_comment="下课时间")
     class_location = models.CharField(db_comment="上课地点", max_length=100)
@@ -15,7 +19,7 @@ class Setting(models.Model):
     course_type = models.SmallIntegerField(
         db_comment="课程类型", choices=course_type_choices, default=1
     )
-    enrollment_limit = models.PositiveIntegerField(db_comment="选课人数限制", default=1000)
+    enrollment_limit = models.PositiveIntegerField(db_comment="选课人数限制", default=100)
     day_choices = (
         (1, "星期一"),
         (2, "星期二"),
@@ -36,12 +40,18 @@ class Setting(models.Model):
     date_joined = models.DateTimeField(auto_now_add=True)
     date_updated = models.DateTimeField(auto_now=True)
     teacher = models.ManyToManyField(
-        to=Information,
+        to=TeacherInformation,
         related_name="course_teacher",
+    )
+    student = models.ManyToManyField(
+        to=StudentInformation,
+        related_name="course_student",
+        blank=True,
     )
     classes = models.ManyToManyField(
         to=ClassInformation,
         related_name="course_class",
+        blank=True,
     )
 
     def __str__(self):

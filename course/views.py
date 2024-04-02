@@ -6,7 +6,8 @@ from common.viewsets import ModelViewSetFormatResult, ReadOnlyModelViewSetFormat
 from .filters import CourseSettingFilter
 from .models import Setting, Time
 from .serializers import CourseSettingSerializer, CourseTimeSerializer
-from student.models import Enrollment
+from student.models import Enrollment, Information
+from django.db.models import Q
 
 
 # Create your views here.
@@ -21,12 +22,12 @@ class CourseSettingsViewSet(ModelViewSetFormatResult):
         serializer = self.get_serializer(instance, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
         # 获取请求中的教师 ID 列表
-        teacher_ids = request.data.get("teacher", [])
-        classes_ids = request.data.get("classes", [])
+        teacher_ids = request.data.get("teacher")
+        classes_ids = request.data.get("classes")
         # 在保存课程之前，将教师列表中的教师 ID 添加到课程的教师列表中
-        if teacher_ids:
+        if teacher_ids is not None:
             instance.teacher.set(teacher_ids)
-        if classes_ids:
+        if classes_ids is not None:
             instance.classes.set(classes_ids)
         self.perform_update(serializer)
         return Result.OK_202_ACCEPTED(data=serializer.data)
@@ -49,15 +50,24 @@ class CourseTimeViewSet(ReadOnlyModelViewSetFormatResult):
 
 
 class CourseScheduleViewSet(ReadOnlyModelViewSetFormatResult):
-    queryset = Setting.objects.all().distinct()
+    queryset = Setting.objects.all()
     serializer_class = CourseSettingSerializer
     pagination_class = UnlimitedPagination
 
     def list(self, request, *args, **kwargs):
         enrollment = get_object_or_404(Enrollment, user=request.user)
+        student = get_object_or_404(Information, user=request.user)
         queryset = self.filter_queryset(
-            self.get_queryset().filter(classes=enrollment.classes)
+            self.get_queryset().filter(
+                Q(classes=enrollment.classes) | Q(student=student)
+            )
         )
         serializer = self.get_serializer(self.paginate_queryset(queryset), many=True)
         paginated_response = self.get_paginated_response(serializer.data)
         return Result.OK_200_SUCCESS(data=paginated_response.data)
+
+
+class CourseSelectViewSet(ReadOnlyModelViewSetFormatResult):
+    queryset = Setting.objects.filter(classes=None)
+    serializer_class = CourseSettingSerializer
+    pagination_class = UnlimitedPagination
