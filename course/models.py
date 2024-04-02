@@ -9,7 +9,11 @@ class Setting(models.Model):
     course_name = models.CharField(db_comment="课程名称", max_length=100)
     course_description = models.TextField(db_comment="课程描述", null=True, blank=True)
     course_picture = models.ImageField(
-        db_comment="课程图片", upload_to="course_picture", null=True, blank=True
+        db_comment="课程图片",
+        upload_to="course_picture",
+        max_length=256,
+        null=True,
+        blank=True,
     )
     start_time = models.TimeField(db_comment="上课时间")
     end_time = models.TimeField(db_comment="下课时间")

@@ -9,6 +9,12 @@ class CourseSettingSerializer(serializers.ModelSerializer):
     id = serializers.CharField(read_only=True)
     teacher = TeacherSimpleSerializer(many=True, read_only=True)
     classes = ClassInformationSerializer(many=True, read_only=True)
+    course_picture = serializers.ImageField(
+        label="课程图片",
+        max_length=256,  # 图片名最大长度
+        use_url=True,  # 设为True则URL字符串值将用于输出表示。设为False则文件名字符串值将用于输出表示
+        error_messages={"invalid": "图片参数错误"},
+    )
 
     class Meta:
         model = Setting

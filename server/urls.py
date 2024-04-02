@@ -15,23 +15,19 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.urls import path, include
-from rest_framework.routers import SimpleRouter
+from django.conf.urls.static import static
 from rest_framework.documentation import include_docs_urls
 
-# from common import views
-
-# router = SimpleRouter()
-# router.register('api', views.TextViewSet,basename='captcha')
+from django.conf import settings
 
 urlpatterns = [
     # path('admin/', admin.site.urls),
-    # path('docs/', include_docs_urls(title='DRF Api文档', description='Django')),
+    # path("docs/", include_docs_urls(title="DRF Api文档", description="Django")),
     path("api/v1/auth/", include("iam.urls")),
     path("api/v1/student/", include("student.urls")),
     path("api/v1/teacher/", include("teacher.urls")),
     path("api/v1/course/", include("course.urls")),
     path("api/v1/classes/", include("classes.urls")),
     path("api/v1/", include("common.urls")),
+    *static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT),
 ]
-
-# urlpatterns += router.urls

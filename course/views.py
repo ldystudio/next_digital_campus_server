@@ -1,11 +1,19 @@
 from django.shortcuts import get_object_or_404
+from rest_framework.parsers import MultiPartParser
 
 from common.pagination import UnlimitedPagination
 from common.result import Result
-from common.viewsets import ModelViewSetFormatResult, ReadOnlyModelViewSetFormatResult
+from common.viewsets import (
+    ModelViewSetFormatResult,
+    ReadOnlyModelViewSetFormatResult,
+    RetrieveUpdateModelViewSetFormatResult,
+)
 from .filters import CourseSettingFilter
 from .models import Setting, Time
-from .serializers import CourseSettingSerializer, CourseTimeSerializer
+from .serializers import (
+    CourseSettingSerializer,
+    CourseTimeSerializer,
+)
 from student.models import Enrollment, Information
 from django.db.models import Q
 
