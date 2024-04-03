@@ -1,21 +1,21 @@
+from django.db.models import Q
 from django.shortcuts import get_object_or_404
-from rest_framework.parsers import MultiPartParser
 
 from common.pagination import UnlimitedPagination
 from common.result import Result
+from common.utils.file import file_field_path_delete
+from common.utils.foreignKey import foreign_key_update
 from common.viewsets import (
     ModelViewSetFormatResult,
     ReadOnlyModelViewSetFormatResult,
-    RetrieveUpdateModelViewSetFormatResult,
 )
+from student.models import Enrollment, Information
 from .filters import CourseSettingFilter
 from .models import Setting, Time
 from .serializers import (
     CourseSettingSerializer,
     CourseTimeSerializer,
 )
-from student.models import Enrollment, Information
-from django.db.models import Q
 
 
 # Create your views here.
@@ -29,14 +29,8 @@ class CourseSettingsViewSet(ModelViewSetFormatResult):
         instance = self.get_object()
         serializer = self.get_serializer(instance, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
-        # 获取请求中的教师 ID 列表
-        teacher_ids = request.data.get("teacher")
-        classes_ids = request.data.get("classes")
-        # 在保存课程之前，将教师列表中的教师 ID 添加到课程的教师列表中
-        if teacher_ids is not None:
-            instance.teacher.set(teacher_ids)
-        if classes_ids is not None:
-            instance.classes.set(classes_ids)
+        foreign_key_update(["teacher", "classes"], request.data, instance)
+        file_field_path_delete("course_picture", request.data, instance.course_picture)
         self.perform_update(serializer)
         return Result.OK_202_ACCEPTED(data=serializer.data)
 

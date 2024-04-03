@@ -24,8 +24,6 @@ def exception_handler(exc, context):
         error_msg = ""
         if isinstance(response.data, dict):
             error_msg = response.data.get("detail", response.data or exc.detail or exc)
-            print(error_msg)
-            print(type(error_msg))
 
             if isinstance(error_msg, ReturnDict):
                 if "non_field_errors" in error_msg:
