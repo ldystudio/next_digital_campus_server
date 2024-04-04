@@ -15,6 +15,7 @@ class CourseSettingSerializer(serializers.ModelSerializer):
         use_url=True,  # 设为True则URL字符串值将用于输出表示。设为False则文件名字符串值将用于输出表示
         error_messages={"invalid": "图片参数错误"},
         allow_null=True,
+        required=False,
     )
 
     class Meta:

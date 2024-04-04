@@ -17,7 +17,9 @@ class Setting(models.Model):
     )
     start_time = models.TimeField(db_comment="上课时间")
     end_time = models.TimeField(db_comment="下课时间")
-    class_location = models.CharField(db_comment="上课地点", max_length=100)
+    class_location = models.CharField(
+        db_comment="上课地点", max_length=100, null=True, blank=True
+    )
     credit = models.DecimalField(db_comment="课程学分", max_digits=5, decimal_places=1)
     course_type_choices = ((1, "必修课"), (2, "选修课"), (3, "实践课"))
     course_type = models.SmallIntegerField(

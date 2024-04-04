@@ -13,7 +13,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 from datetime import timedelta
 from pathlib import Path
 
-from expand import verifying_key, signing_key
+from generate_rsa_keys import verifying_key, signing_key
 
 try:
     from .local_settings import *
@@ -177,6 +177,10 @@ REST_FRAMEWORK = {
     "EXCEPTION_HANDLER": "common.exception.handler.exception_handler",
     # 文档
     "DEFAULT_SCHEMA_CLASS": "rest_framework.schemas.coreapi.AutoSchema",
+}
+
+REST_FRAMEWORK_EXTENSIONS = {
+    "DEFAULT_CACHE_RESPONSE_TIMEOUT": 60 * 15,
 }
 
 SIMPLE_JWT = {

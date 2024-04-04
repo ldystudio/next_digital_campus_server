@@ -1,10 +1,11 @@
 from django.db.models import Q
+from django.http.response import Http404
 from django.shortcuts import get_object_or_404
 
 from common.pagination import UnlimitedPagination
 from common.result import Result
 from common.utils.file import file_field_path_delete
-from common.utils.foreignKey import foreign_key_update
+from common.utils.foreignKey import foreign_key_fields_update, foreign_key_fields_create
 from common.viewsets import (
     ModelViewSetFormatResult,
     ReadOnlyModelViewSetFormatResult,
@@ -26,10 +27,13 @@ class CourseSettingsViewSet(ModelViewSetFormatResult):
 
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop("partial", False)
-        instance = self.get_object()
+        try:
+            instance = self.get_object()
+        except Http404:
+            return Result.FAIL_404_NOT_FOUND(msg="请先创建课程后再上传图片")
         serializer = self.get_serializer(instance, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
-        foreign_key_update(["teacher", "classes"], request.data, instance)
+        foreign_key_fields_update(["teacher", "classes"], request.data, instance)
         file_field_path_delete("course_picture", request.data, instance.course_picture)
         self.perform_update(serializer)
         return Result.OK_202_ACCEPTED(data=serializer.data)
@@ -37,11 +41,8 @@ class CourseSettingsViewSet(ModelViewSetFormatResult):
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        # 获取请求中的教师 ID 列表
-        teacher_ids = request.data.get("teacher", [])
-        classes_ids = request.data.get("classes", [])
-        # 在保存课程之前，将教师列表中的教师 ID 添加到课程的教师列表中
-        serializer.save(teacher=teacher_ids, classes=classes_ids)
+        foreign_key_fields_create(["teacher", "classes"], request.data, serializer)
+        self.perform_create(serializer)
         return Result.OK_201_CREATED(data=serializer.data)
 
 

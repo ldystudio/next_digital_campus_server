@@ -2,20 +2,26 @@ from django_filters import rest_framework as filters
 from rest_framework import mixins
 from rest_framework.filters import OrderingFilter
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet, GenericViewSet
+from rest_framework_extensions.cache.decorators import cache_response
 from rest_framework_tracking.mixins import LoggingMixin
 
 from common.permissions import IsAdminUser, IsOwnerOperation
 from common.result import Result
+from common.utils.cache import CacheFnMixin
 from iam.models import User
 
 
-class ReadOnlyModelViewSetFormatResult(LoggingMixin, ReadOnlyModelViewSet):
+class ReadOnlyModelViewSetFormatResult(
+    LoggingMixin, CacheFnMixin, ReadOnlyModelViewSet
+):
     logging_methods = ["GET"]
 
+    @cache_response(key_func="list_cache_key_func")
     def list(self, request, *args, **kwargs):
         response = super().list(request, *args, **kwargs)
         return Result.OK_200_SUCCESS(data=response.data)
 
+    @cache_response(key_func="object_cache_key_func")
     def retrieve(self, request, *args, **kwargs):
         response = super().retrieve(request, *args, **kwargs)
         return Result.OK_200_SUCCESS(data=response.data)
@@ -31,21 +37,12 @@ class RetrieveModelViewSetFormatResult(
         return Result.OK_200_SUCCESS(data=response.data)
 
 
-class RetrieveUpdateModelViewSetFormatResult(
-    LoggingMixin, mixins.RetrieveModelMixin, mixins.UpdateModelMixin, GenericViewSet
-):
-    logging_methods = ["GET", "PUT", "PATCH"]
-
-    def retrieve(self, request, *args, **kwargs):
-        response = super().retrieve(request, *args, **kwargs)
-        return Result.OK_200_SUCCESS(data=response.data)
-
-
-class ModelViewSetFormatResult(LoggingMixin, ModelViewSet):
+class ModelViewSetFormatResult(LoggingMixin, CacheFnMixin, ModelViewSet):
     permission_classes = (IsOwnerOperation,)
     filter_backends = (OrderingFilter, filters.DjangoFilterBackend)
     logging_methods = ["GET", "POST", "PUT", "PATCH", "DELETE"]
 
+    @cache_response(key_func="list_cache_key_func")
     def list(self, request, *args, **kwargs):
         user = request.user
         # 非管理员只能查询自己的list
@@ -58,6 +55,7 @@ class ModelViewSetFormatResult(LoggingMixin, ModelViewSet):
         paginated_response = self.get_paginated_response(serializer.data)
         return Result.OK_200_SUCCESS(data=paginated_response.data)
 
+    @cache_response(key_func="object_cache_key_func")
     def retrieve(self, request, *args, **kwargs):
         response = super().retrieve(request, *args, **kwargs)
         return Result.OK_200_SUCCESS(data=response.data)
@@ -77,6 +75,7 @@ class ModelViewSetFormatResult(LoggingMixin, ModelViewSet):
 
 class ReadWriteModelViewSetFormatResult(
     LoggingMixin,
+    CacheFnMixin,
     mixins.ListModelMixin,
     mixins.RetrieveModelMixin,
     mixins.UpdateModelMixin,
@@ -101,10 +100,12 @@ class ReadWriteModelViewSetFormatResult(
         # 仅对“list”操作应用IsAdminUser权限
         return (IsAdminUser(),) if self.action == "list" else super().get_permissions()
 
+    @cache_response(key_func="list_cache_key_func")
     def list(self, request, *args, **kwargs):
         response = super().list(request, *args, **kwargs)
         return Result.OK_200_SUCCESS(data=response.data)
 
+    @cache_response(key_func="object_cache_key_func")
     def retrieve(self, request, *args, **kwargs):
         response = super().retrieve(request, *args, **kwargs)
         return Result.OK_200_SUCCESS(data=response.data)

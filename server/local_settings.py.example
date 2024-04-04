@@ -28,6 +28,8 @@ CACHES = {
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
             # "PASSWORD": "xxx",
+            # 配置连接池
+            "CONNECTION_POOL_KWARGS": {"max_connections": 100},
             # 压缩方法
             # "COMPRESSOR": "django_redis.compressors.zlib.ZlibCompressor",
             # 忽略异常
