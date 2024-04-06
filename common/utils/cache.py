@@ -8,8 +8,7 @@ class CacheFnMixin:
             path = "/".join(path.split("/")[:-2])
 
         keys = cache.keys(f"{path}*")
-        for key in keys:
-            cache.delete(key)
+        cache.delete_many(keys)
 
     @staticmethod
     def list_cache_key_func(request, *args, **kwargs):
@@ -18,7 +17,7 @@ class CacheFnMixin:
 
     @staticmethod
     def object_cache_key_func(request, *args, **kwargs):
-        return f"{request.path}?user={request.user}"
+        return f"{request.path}?request_user={request.user}"
 
     def perform_create(self, serializer):
         self.delete_cache_by_path_prefix()

@@ -2,7 +2,7 @@ from django.db.models import Q
 from django.http.response import Http404
 from django.shortcuts import get_object_or_404
 from rest_framework_extensions.cache.decorators import cache_response
-
+from snowflake.client import get_guid
 from common.pagination import UnlimitedPagination
 from common.result import Result
 from common.utils.file import file_field_path_delete
@@ -43,6 +43,7 @@ class CourseSettingsViewSet(ModelViewSetFormatResult):
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+        serializer.validated_data["id"] = get_guid()
         foreign_key_fields_create(["teacher", "classes"], request.data, serializer)
         self.perform_create(serializer)
         return Result.OK_201_CREATED(data=serializer.data)
@@ -55,7 +56,7 @@ class CourseTimeViewSet(ReadOnlyModelViewSetFormatResult):
 
 
 class CourseScheduleViewSet(ReadOnlyModelViewSetFormatResult):
-    queryset = Setting.objects.all()
+    queryset = Setting.objects.all().distinct()
     serializer_class = CourseSettingSerializer
     pagination_class = UnlimitedPagination
 
@@ -74,8 +75,9 @@ class CourseScheduleViewSet(ReadOnlyModelViewSetFormatResult):
 
 
 class CourseChooseViewSet(ReadOnlyModelViewSetFormatResult):
-    queryset = Setting.objects.filter(classes=None)
+    queryset = Setting.objects.filter(classes=None).distinct()
     serializer_class = CourseChooseSerializer
+    filterset_class = CourseSettingFilter
 
     @cache_response(key_func="list_cache_key_func")
     def list(self, request, *args, **kwargs):

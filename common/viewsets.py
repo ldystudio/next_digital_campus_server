@@ -110,12 +110,16 @@ class ReadWriteModelViewSetFormatResult(
         response = super().retrieve(request, *args, **kwargs)
         return Result.OK_200_SUCCESS(data=response.data)
 
-    def partial_update(self, request, *args, **kwargs):
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop("partial", False)
         try:
             instance = self.get_object()
             user = User.objects.get(id=instance.user_id)
         except (User.DoesNotExist, self.get_queryset().model.DoesNotExist):
             return Result.FAIL_404_NOT_FOUND(msg="用户或信息不存在")
+
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
 
         user_data, model_data = self.split_data(request.data)
 
@@ -132,5 +136,5 @@ class ReadWriteModelViewSetFormatResult(
                     setattr(instance, attr, val)
             instance.save()
 
-        serializer = self.get_serializer(instance)
+        self.perform_update(serializer)
         return Result.OK_202_ACCEPTED(data=serializer.data)
