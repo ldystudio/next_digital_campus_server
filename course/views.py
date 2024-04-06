@@ -1,6 +1,7 @@
 from django.db.models import Q
 from django.http.response import Http404
 from django.shortcuts import get_object_or_404
+from rest_framework_extensions.cache.decorators import cache_response
 
 from common.pagination import UnlimitedPagination
 from common.result import Result
@@ -16,6 +17,7 @@ from .models import Setting, Time
 from .serializers import (
     CourseSettingSerializer,
     CourseTimeSerializer,
+    CourseChooseSerializer,
 )
 
 
@@ -57,6 +59,7 @@ class CourseScheduleViewSet(ReadOnlyModelViewSetFormatResult):
     serializer_class = CourseSettingSerializer
     pagination_class = UnlimitedPagination
 
+    @cache_response(key_func="list_cache_key_func")
     def list(self, request, *args, **kwargs):
         enrollment = get_object_or_404(Enrollment, user=request.user)
         student = get_object_or_404(Information, user=request.user)
@@ -70,7 +73,14 @@ class CourseScheduleViewSet(ReadOnlyModelViewSetFormatResult):
         return Result.OK_200_SUCCESS(data=paginated_response.data)
 
 
-class CourseSelectViewSet(ReadOnlyModelViewSetFormatResult):
+class CourseChooseViewSet(ReadOnlyModelViewSetFormatResult):
     queryset = Setting.objects.filter(classes=None)
-    serializer_class = CourseSettingSerializer
-    pagination_class = UnlimitedPagination
+    serializer_class = CourseChooseSerializer
+
+    @cache_response(key_func="list_cache_key_func")
+    def list(self, request, *args, **kwargs):
+        student = get_object_or_404(Information, user=request.user)
+        queryset = self.filter_queryset(self.get_queryset().filter(~Q(student=student)))
+        serializer = self.get_serializer(self.paginate_queryset(queryset), many=True)
+        paginated_response = self.get_paginated_response(serializer.data)
+        return Result.OK_200_SUCCESS(data=paginated_response.data)
