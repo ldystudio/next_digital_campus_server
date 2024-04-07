@@ -2,11 +2,14 @@ from django.core.cache import cache
 
 
 class CacheFnMixin:
-    def delete_cache_by_path_prefix(self):
-        path = self.request.path
-        if self.request.method != "POST":
-            path = "/".join(path.split("/")[:-2])
-
+    def delete_cache_by_path_prefix(self, path: str | list = None):
+        if path is None:
+            path = self.request.path
+            if self.request.method != "POST":
+                path = "/".join(path.split("/")[:-2])
+        elif isinstance(path, list):
+            for p in path:
+                self.delete_cache_by_path_prefix(p)
         keys = cache.keys(f"{path}*")
         cache.delete_many(keys)
 

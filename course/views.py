@@ -1,8 +1,10 @@
 from django.db.models import Q
 from django.http.response import Http404
 from django.shortcuts import get_object_or_404
+from rest_framework.permissions import IsAuthenticated
 from rest_framework_extensions.cache.decorators import cache_response
 from snowflake.client import get_guid
+
 from common.pagination import UnlimitedPagination
 from common.result import Result
 from common.utils.file import file_field_path_delete
@@ -10,6 +12,7 @@ from common.utils.foreignKey import foreign_key_fields_update, foreign_key_field
 from common.viewsets import (
     ModelViewSetFormatResult,
     ReadOnlyModelViewSetFormatResult,
+    ReadWriteModelViewSetFormatResult,
 )
 from student.models import Enrollment, Information
 from .filters import CourseSettingFilter
@@ -48,6 +51,27 @@ class CourseSettingsViewSet(ModelViewSetFormatResult):
         self.perform_create(serializer)
         return Result.OK_201_CREATED(data=serializer.data)
 
+    def perform_create(self, serializer):
+        self.delete_cache_by_path_prefix()
+        self.delete_cache_by_path_prefix(
+            path=["/api/v1/course/schedule/", "/api/v1/course/choose/"]
+        )
+        serializer.save()
+
+    def perform_update(self, serializer):
+        self.delete_cache_by_path_prefix()
+        self.delete_cache_by_path_prefix(
+            path=["/api/v1/course/schedule/", "/api/v1/course/choose/"]
+        )
+        serializer.save()
+
+    def perform_destroy(self, instance):
+        self.delete_cache_by_path_prefix()
+        self.delete_cache_by_path_prefix(
+            path=["/api/v1/course/schedule/", "/api/v1/course/choose/"]
+        )
+        instance.delete()
+
 
 class CourseTimeViewSet(ReadOnlyModelViewSetFormatResult):
     queryset = Time.objects.all()
@@ -74,10 +98,14 @@ class CourseScheduleViewSet(ReadOnlyModelViewSetFormatResult):
         return Result.OK_200_SUCCESS(data=paginated_response.data)
 
 
-class CourseChooseViewSet(ReadOnlyModelViewSetFormatResult):
+class CourseChooseViewSet(ReadWriteModelViewSetFormatResult):
     queryset = Setting.objects.filter(classes=None).distinct()
     serializer_class = CourseChooseSerializer
+    permission_classes = (IsAuthenticated,)
     filterset_class = CourseSettingFilter
+
+    def get_permissions(self):
+        return [permission() for permission in self.permission_classes]
 
     @cache_response(key_func="list_cache_key_func")
     def list(self, request, *args, **kwargs):
@@ -86,3 +114,15 @@ class CourseChooseViewSet(ReadOnlyModelViewSetFormatResult):
         serializer = self.get_serializer(self.paginate_queryset(queryset), many=True)
         paginated_response = self.get_paginated_response(serializer.data)
         return Result.OK_200_SUCCESS(data=paginated_response.data)
+
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop("partial", False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        student = get_object_or_404(Information, user=request.user)
+        instance.student.add(student)
+
+        self.delete_cache_by_path_prefix(path="/api/v1/course/schedule/")
+        self.perform_update(serializer)
+        return Result.OK_202_ACCEPTED(data=serializer.data)
