@@ -1,4 +1,7 @@
+from functools import wraps, WRAPPER_ASSIGNMENTS
+
 from django.core.cache import cache
+from rest_framework_extensions.cache.decorators import CacheResponse
 
 
 class CacheFnMixin:
@@ -33,3 +36,27 @@ class CacheFnMixin:
     def perform_destroy(self, instance):
         self.delete_cache_by_path_prefix()
         instance.delete()
+
+
+class CacheRedirectResponse(CacheResponse):
+    def __call__(self, func):
+        this = self
+
+        @wraps(func, assigned=WRAPPER_ASSIGNMENTS)
+        def inner(self, request, *args, **kwargs):
+            if request.user.user_role != "admin":
+                # 如果用户角色不是 "admin"，需要重定向到详情则直接调用视图函数，不进行缓存
+                return func(self, request, *args, **kwargs)
+
+            return this.process_cache_response(
+                view_instance=self,
+                view_method=func,
+                request=request,
+                args=args,
+                kwargs=kwargs,
+            )
+
+        return inner
+
+
+cache_redirect_response = CacheRedirectResponse

@@ -1,3 +1,5 @@
+from django.shortcuts import redirect
+from django.urls import reverse
 from django_filters import rest_framework as filters
 from rest_framework import mixins
 from rest_framework.filters import OrderingFilter
@@ -5,9 +7,9 @@ from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet, GenericV
 from rest_framework_extensions.cache.decorators import cache_response
 from rest_framework_tracking.mixins import LoggingMixin
 
-from common.permissions import IsAdminUser, IsOwnerOperation
+from common.permissions import IsOwnerOperation
 from common.result import Result
-from common.utils.cache import CacheFnMixin
+from common.cache import CacheFnMixin, cache_redirect_response
 from iam.models import User
 
 
@@ -96,14 +98,21 @@ class ReadWriteModelViewSetFormatResult(
                 model_data[key] = value
         return user_data, model_data
 
-    def get_permissions(self):
-        # 仅对“list”操作应用IsAdminUser权限
-        return (IsAdminUser(),) if self.action == "list" else super().get_permissions()
-
-    @cache_response(key_func="list_cache_key_func")
+    @cache_redirect_response(key_func="list_cache_key_func")
     def list(self, request, *args, **kwargs):
-        response = super().list(request, *args, **kwargs)
-        return Result.OK_200_SUCCESS(data=response.data)
+        if request.user.user_role == "admin":
+            response = super().list(request, *args, **kwargs)
+            return Result.OK_200_SUCCESS(data=response.data)
+
+        try:
+            obj = self.get_queryset().get(user=request.user)
+        except self.queryset.model.DoesNotExist:
+            return Result.FAIL_404_NOT_FOUND()
+        retrieve_url = reverse(
+            request.resolver_match.url_name[:-5] + "-detail",
+            kwargs={"pk": obj.pk},
+        )
+        return redirect(retrieve_url)
 
     @cache_response(key_func="object_cache_key_func")
     def retrieve(self, request, *args, **kwargs):
@@ -116,7 +125,7 @@ class ReadWriteModelViewSetFormatResult(
             instance = self.get_object()
             user = User.objects.get(id=instance.user_id)
         except (User.DoesNotExist, self.get_queryset().model.DoesNotExist):
-            return Result.FAIL_404_NOT_FOUND(msg="用户或信息不存在")
+            return Result.FAIL_404_NOT_FOUND()
 
         serializer = self.get_serializer(instance, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
@@ -137,4 +146,8 @@ class ReadWriteModelViewSetFormatResult(
             instance.save()
 
         self.perform_update(serializer)
+
+        if "avatar" in request.data:
+            return Result.OK_202_ACCEPTED(code=2031, data=serializer.data)
+
         return Result.OK_202_ACCEPTED(data=serializer.data)

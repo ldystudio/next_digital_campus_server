@@ -1,79 +1,79 @@
 version: '3'
 
 services:
-  mysql:
-    image: mysql:8.0.31
-    container_name: mysql
-    ports:
-      - "3306:3306"
-    expose:
-      - 3306
-    volumes:
-      - /opt/software/mysql/conf:/etc/mysql/conf.d
-      - /opt/software/mysql/data:/var/lib/mysql
-      - /opt/software/mysql/logs:/logs
-    environment:
-      - MYSQL_ROOT_PASSWORD=LHY18337580372
-      - MYSQL_DATABASE=next_digital_campus
-      - TZ=Asia/Shanghai
-    restart: always
-  redis:
-    image: redis:6.2.10
-    container_name: redis
-    ports:
-      - "6379:6379"
-    expose:
-      - 6379
-    volumes:
-      - /opt/software/redis/redis.conf:/etc/redis/redis.conf
-      - /opt/software/redis/data:/data
-    environment:
-      - TZ=Asia/Shanghai
-    command: redis-server /etc/redis/redis.conf
-    restart: always
-  snowflake:
-    build: ./snowflake
-    container_name: snowflake
-    ports:
-      - "8910:8910"
-    expose:
-      - 8910
-    volumes:
-      - ./snowflake:/app
-    environment:
-      - TZ=Asia/Shanghai
-    restart: always
-  django:
-    build: .
-    container_name: django-server
-    ports:
-      - "8080:8080"
-    expose:
-      - 8080
-    volumes:
-      - .:/code
-    environment:
-      - TZ=Asia/Shanghai
-    command: uwsgi --ini /code/uwsgi.ini
-    depends_on:
-      - snowflake
-      - redis
-      - mysql
-    restart: always
-  nginx:
-    image: nginx:latest
-    container_name: nginx
-    ports:
-      - "8000:8000"
-    expose:
-      - 8000
-    volumes:
-      - /opt/software/nginx/conf/nginx.conf:/etc/nginx/nginx.conf
-      - /opt/software/nginx/html:/usr/share/nginx/html
-      - /opt/software/nginx/logs:/var/log/nginx
-      - /opt/next-digital-campus/server/media:/code/media
-    environment:
-      - TZ=Asia/Shanghai
-    restart: always
-    depends_on:
-      - django
+    mysql:
+        image: mysql:8.0.31
+        container_name: mysql
+        ports:
+            - "3306:3306"
+        expose:
+            - 3306
+        volumes:
+            - /opt/software/mysql/conf:/etc/mysql/conf.d
+            - /opt/software/mysql/data:/var/lib/mysql
+            - /opt/software/mysql/logs:/logs
+        environment:
+            - MYSQL_ROOT_PASSWORD=LHY18337580372
+            - MYSQL_DATABASE=next_digital_campus
+            - TZ=Asia/Shanghai
+        restart: always
+    redis:
+        image: redis:6.2.10
+        container_name: redis
+        ports:
+            - "6379:6379"
+        expose:
+            - 6379
+        volumes:
+            - /opt/software/redis/redis.conf:/etc/redis/redis.conf
+            - /opt/software/redis/data:/data
+        environment:
+            - TZ=Asia/Shanghai
+        command: redis-server /etc/redis/redis.conf
+        restart: always
+    snowflake:
+        build: ./snowflake
+        container_name: snowflake
+        ports:
+            - "8910:8910"
+        expose:
+            - 8910
+        volumes:
+            - ./snowflake:/app
+        environment:
+            - TZ=Asia/Shanghai
+        restart: always
+    django:
+        build: .
+        container_name: django-server
+        ports:
+            - "8080:8080"
+        expose:
+            - 8080
+        volumes:
+            - .:/code
+        environment:
+            - TZ=Asia/Shanghai
+        command: uwsgi --ini /code/uwsgi.ini
+        depends_on:
+            - snowflake
+            - redis
+            - mysql
+        restart: always
+    nginx:
+        image: nginx:latest
+        container_name: nginx
+        ports:
+            - "8000:8000"
+        expose:
+            - 8000
+        volumes:
+            - /opt/software/nginx/conf/nginx.conf:/etc/nginx/nginx.conf
+            - /opt/software/nginx/html:/usr/share/nginx/html
+            - /opt/software/nginx/logs:/var/log/nginx
+            - /opt/next-digital-campus/server/media:/code/media
+        environment:
+            - TZ=Asia/Shanghai
+        depends_on:
+            - django
+        restart: always
