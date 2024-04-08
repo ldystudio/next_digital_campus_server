@@ -60,3 +60,20 @@ services:
       - redis
       - mysql
     restart: always
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    ports:
+      - "8000:8000"
+    expose:
+      - 8000
+    volumes:
+      - /opt/software/nginx/conf/nginx.conf:/etc/nginx/nginx.conf
+      - /opt/software/nginx/html:/usr/share/nginx/html
+      - /opt/software/nginx/logs:/var/log/nginx
+      - /opt/next-digital-campus/server/media:/code/media
+    environment:
+      - TZ=Asia/Shanghai
+    restart: always
+    depends_on:
+      - django
