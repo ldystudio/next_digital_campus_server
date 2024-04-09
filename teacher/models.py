@@ -85,6 +85,7 @@ class Attendance(models.Model):
         db_comment="考勤状态", choices=attendance_status_choices, default=1
     )
     check_in_time = models.TimeField(db_comment="签到时间", auto_now=True)
+    ip_address = models.GenericIPAddressField(db_comment="IP地址", null=True, blank=True)
     late_time = models.TimeField(db_comment="迟到时间", null=True, blank=True)
     early_leave_time = models.TimeField(db_comment="早退时间", null=True, blank=True)
     leave_start_time = models.DateTimeField(db_comment="请假开始时间", null=True, blank=True)

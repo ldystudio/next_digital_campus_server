@@ -14,4 +14,10 @@ router.register(
     "attendance", views.StudentAttendanceViewSet, basename="StudentAttendance"
 )
 
-urlpatterns = router.urls
+urlpatterns = [
+    path(
+        "attendance-today/",
+        views.StudentTodayAttendanceGenericsView.as_view(),
+        name="StudentTodayAttendance",
+    ),
+] + router.urls

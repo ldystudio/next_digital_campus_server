@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from pydash import pick
-import snowflake.client
+from snowflake.client import get_guid
 from common.utils.serializer import validate_user_id_or_real_name
 from iam.models import User
 from iam.serializers import UserSerializer
@@ -43,7 +43,7 @@ class ForeignKeyUserWithAddSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("用户不存在")
 
         # 使用snowflake生成的ID
-        snowflake_id = snowflake.client.get_guid()
+        snowflake_id = get_guid()
 
         # 更新attrs字典
         attrs["id"] = snowflake_id

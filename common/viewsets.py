@@ -63,6 +63,8 @@ class ModelViewSetFormatResult(LoggingMixin, CacheFnMixin, ModelViewSet):
         return Result.OK_200_SUCCESS(data=response.data)
 
     def create(self, request, *args, **kwargs):
+        if "Attendance" in request.resolver_match.func.__name__:
+            request.data["ip_address"] = request.META.get("REMOTE_ADDR")
         response = super().create(request, *args, **kwargs)
         return Result.OK_201_CREATED(data=response.data)
 
@@ -121,18 +123,18 @@ class ReadWriteModelViewSetFormatResult(
 
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop("partial", False)
-        try:
-            instance = self.get_object()
-            user = User.objects.get(id=instance.user_id)
-        except (User.DoesNotExist, self.get_queryset().model.DoesNotExist):
-            return Result.FAIL_404_NOT_FOUND()
-
+        instance = self.get_object()
         serializer = self.get_serializer(instance, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
 
         user_data, model_data = self.split_data(request.data)
 
         if user_data:
+            try:
+                user = User.objects.get(id=instance.user_id)
+            except (User.DoesNotExist, self.get_queryset().model.DoesNotExist):
+                return Result.FAIL_404_NOT_FOUND()
+
             for attr, val in user_data.items():
                 setattr(user, attr, val)
             user.save()

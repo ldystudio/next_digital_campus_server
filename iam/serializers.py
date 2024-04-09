@@ -1,4 +1,4 @@
-import snowflake.client
+from snowflake.client import get_guid
 from django.core.cache import cache
 from rest_framework import serializers
 from django.db import transaction
@@ -48,7 +48,7 @@ class RegisterUserSerializer(serializers.Serializer):
         cache.expire(trace_id, timeout=0, version="EmailCaptcha")
 
         user = User.objects.create_user(
-            id=snowflake.client.get_guid(),
+            id=get_guid(),
             username=validated_data["username"],
             password=validated_data["password"],
             email=validated_data["email"],
