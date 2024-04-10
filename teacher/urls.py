@@ -12,4 +12,16 @@ router.register(
     "attendance", views.TeacherAttendanceViewSet, basename="TeacherAttendance"
 )
 router.register("simple", views.TeacherSimpleViewSet, basename="TeacherSimple")
-urlpatterns = router.urls
+
+urlpatterns = [
+    path(
+        "attendance-today/",
+        views.TeacherTodayAttendanceListView.as_view(),
+        name="TeacherTodayAttendance",
+    ),
+    path(
+        "attendance-all/",
+        views.TeacherAttendanceAllTuplesListView.as_view(),
+        name="TeacherAttendanceAllTuples",
+    ),
+] + router.urls

@@ -7,10 +7,12 @@ from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet, GenericV
 from rest_framework_extensions.cache.decorators import cache_response
 from rest_framework_tracking.mixins import LoggingMixin
 
+from common.cache import CacheFnMixin, cache_admin_user_response
 from common.permissions import IsOwnerOperation
 from common.result import Result
-from common.cache import CacheFnMixin, cache_redirect_response
+from common.utils.decide import is_this_view
 from iam.models import User
+from teacher.models import Information as TeacherInformation
 
 
 class ReadOnlyModelViewSetFormatResult(
@@ -51,7 +53,15 @@ class ModelViewSetFormatResult(LoggingMixin, CacheFnMixin, ModelViewSet):
         if user.user_role == "admin":
             queryset = self.filter_queryset(self.get_queryset())
         else:
-            queryset = self.filter_queryset(self.get_queryset().filter(user_id=user.id))
+            if is_this_view(request, "CourseSettingsViewSet"):
+                teacher = TeacherInformation.objects.get(user=user)
+                queryset = self.filter_queryset(
+                    self.get_queryset().filter(teacher=teacher)
+                )
+            else:
+                queryset = self.filter_queryset(
+                    self.get_queryset().filter(user_id=user.id)
+                )
         # 分页处理
         serializer = self.get_serializer(self.paginate_queryset(queryset), many=True)
         paginated_response = self.get_paginated_response(serializer.data)
@@ -63,7 +73,7 @@ class ModelViewSetFormatResult(LoggingMixin, CacheFnMixin, ModelViewSet):
         return Result.OK_200_SUCCESS(data=response.data)
 
     def create(self, request, *args, **kwargs):
-        if "Attendance" in request.resolver_match.func.__name__:
+        if is_this_view(request, "Attendance"):
             request.data["ip_address"] = request.META.get("REMOTE_ADDR")
         response = super().create(request, *args, **kwargs)
         return Result.OK_201_CREATED(data=response.data)
@@ -100,7 +110,7 @@ class ReadWriteModelViewSetFormatResult(
                 model_data[key] = value
         return user_data, model_data
 
-    @cache_redirect_response(key_func="list_cache_key_func")
+    @cache_admin_user_response(key_func="list_cache_key_func")
     def list(self, request, *args, **kwargs):
         if request.user.user_role == "admin":
             response = super().list(request, *args, **kwargs)

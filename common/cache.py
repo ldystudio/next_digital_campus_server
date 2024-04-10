@@ -13,7 +13,7 @@ class CacheFnMixin:
         elif isinstance(path, list):
             for p in path:
                 self.delete_cache_by_path_prefix(p)
-        keys = cache.keys(f"{path}*")
+        keys = cache.keys(f"{path}*request_user={self.request.user}")
         cache.delete_many(keys)
 
     @staticmethod
@@ -38,7 +38,7 @@ class CacheFnMixin:
         instance.delete()
 
 
-class CacheRedirectResponse(CacheResponse):
+class CacheAdminUserResponse(CacheResponse):
     def __call__(self, func):
         this = self
 
@@ -59,4 +59,26 @@ class CacheRedirectResponse(CacheResponse):
         return inner
 
 
-cache_redirect_response = CacheRedirectResponse
+class CacheOtherUserResponse(CacheResponse):
+    def __call__(self, func):
+        this = self
+
+        @wraps(func, assigned=WRAPPER_ASSIGNMENTS)
+        def inner(self, request, *args, **kwargs):
+            if request.user.user_role == "admin":
+                # 如果用户角色不是 "admin"，需要重定向到详情则直接调用视图函数，不进行缓存
+                return func(self, request, *args, **kwargs)
+
+            return this.process_cache_response(
+                view_instance=self,
+                view_method=func,
+                request=request,
+                args=args,
+                kwargs=kwargs,
+            )
+
+        return inner
+
+
+cache_admin_user_response = CacheAdminUserResponse
+cache_other_user_response = CacheOtherUserResponse

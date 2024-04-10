@@ -47,16 +47,6 @@ class CourseChooseSerializer(serializers.ModelSerializer):
     def get_choose_number(self, obj):
         return obj.student.count()
 
-    # def update(self, instance, validated_data):
-    #     field_to_update = validated_data.pop('student', None)
-    #
-    #     # 更新 instance 中的字段
-    #     if field_to_update is not None:
-    #         instance.field_to_update = field_to_update
-    #
-    #     # 调用父类的 update 方法，执行默认的更新操作
-    #     return super().update(instance, validated_data)
-
     class Meta:
         model = Setting
         fields = (
@@ -68,6 +58,8 @@ class CourseChooseSerializer(serializers.ModelSerializer):
             "credit",
             "start_time",
             "end_time",
+            "start_date",
+            "end_date",
             "weekday",
             "choose_number",
             "teacher",

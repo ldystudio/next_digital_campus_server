@@ -86,8 +86,6 @@ class Attendance(models.Model):
     )
     check_in_time = models.TimeField(db_comment="签到时间", auto_now=True)
     ip_address = models.GenericIPAddressField(db_comment="IP地址", null=True, blank=True)
-    late_time = models.TimeField(db_comment="迟到时间", null=True, blank=True)
-    early_leave_time = models.TimeField(db_comment="早退时间", null=True, blank=True)
     leave_start_time = models.DateTimeField(db_comment="请假开始时间", null=True, blank=True)
     leave_end_time = models.DateTimeField(db_comment="请假结束时间", null=True, blank=True)
     leave_reason = models.TextField(db_comment="请假理由", null=True, blank=True)
@@ -105,4 +103,4 @@ class Attendance(models.Model):
     class Meta:
         verbose_name = "教师考勤"
         verbose_name_plural = verbose_name
-        ordering = ("-date",)
+        ordering = ("-date", "-check_in_time")
