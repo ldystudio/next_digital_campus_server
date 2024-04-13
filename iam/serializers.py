@@ -58,7 +58,7 @@ class RegisterUserSerializer(serializers.Serializer):
 
         user_role = user.user_role
         if user_role == "student":
-            # 在事务中执行创建操作，确保两条条数据都创建成功
+            # 在事务中执行创建操作，确保两条数据都创建成功
             with transaction.atomic():
                 try:
                     student_models.Information.objects.create(user=user)

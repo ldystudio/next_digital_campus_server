@@ -3,6 +3,7 @@ from smtplib import SMTPDataError
 
 from django.core.exceptions import ValidationError
 from django.db.utils import IntegrityError
+from django.http import Http404
 from django.utils.translation import gettext_lazy as _
 from rest_framework.exceptions import Throttled
 from rest_framework.utils.serializer_helpers import ReturnDict
@@ -73,6 +74,7 @@ def handle_validation_errors(exc):
             _("邮箱可能包含不存在的帐户，请检查收件人邮箱。")
         ),
         TokenError: lambda: Result.FAIL_401_INVALID_TOKEN(_("令牌无效或已过期")),
+        Http404: lambda: Result.FAIL_404_NOT_FOUND(exc.message),
     }
 
     # 检查映射中是否有对应的处理函数

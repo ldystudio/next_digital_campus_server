@@ -3,6 +3,8 @@ from functools import wraps, WRAPPER_ASSIGNMENTS
 from django.core.cache import cache
 from rest_framework_extensions.cache.decorators import CacheResponse
 
+from common.utils.decide import is_admin
+
 
 class CacheFnMixin:
     def delete_cache_by_path_prefix(self, path: str | list = None):
@@ -44,7 +46,7 @@ class CacheAdminUserResponse(CacheResponse):
 
         @wraps(func, assigned=WRAPPER_ASSIGNMENTS)
         def inner(self, request, *args, **kwargs):
-            if request.user.user_role != "admin":
+            if not is_admin(request):
                 # 如果用户角色不是 "admin"，需要重定向到详情则直接调用视图函数，不进行缓存
                 return func(self, request, *args, **kwargs)
 
@@ -65,8 +67,8 @@ class CacheOtherUserResponse(CacheResponse):
 
         @wraps(func, assigned=WRAPPER_ASSIGNMENTS)
         def inner(self, request, *args, **kwargs):
-            if request.user.user_role == "admin":
-                # 如果用户角色不是 "admin"，需要重定向到详情则直接调用视图函数，不进行缓存
+            if is_admin(request):
+                # 如果用户角色是 "admin"，需要重定向到详情则直接调用视图函数，不进行缓存
                 return func(self, request, *args, **kwargs)
 
             return this.process_cache_response(

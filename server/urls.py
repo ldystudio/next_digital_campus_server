@@ -14,20 +14,26 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-from django.urls import path, include
-from django.conf.urls.static import static
-from rest_framework.documentation import include_docs_urls
-
 from django.conf import settings
+from django.conf.urls.static import static
+from django.urls import path, include
 
 urlpatterns = [
     # path('admin/', admin.site.urls),
     # path("docs/", include_docs_urls(title="DRF Api文档", description="Django")),
-    path("api/v1/auth/", include("iam.urls")),
-    path("api/v1/student/", include("student.urls")),
-    path("api/v1/teacher/", include("teacher.urls")),
-    path("api/v1/course/", include("course.urls")),
-    path("api/v1/classes/", include("classes.urls")),
-    path("api/v1/", include("common.urls")),
+    path(
+        "api/v1/",
+        include(
+            [
+                path("auth/", include("iam.urls")),
+                path("student/", include("student.urls")),
+                path("teacher/", include("teacher.urls")),
+                path("course/", include("course.urls")),
+                path("classes/", include("classes.urls")),
+                path("score/", include("score.urls")),
+                path("", include("common.urls")),
+            ]
+        ),
+    ),
     *static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT),
 ]

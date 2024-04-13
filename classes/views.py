@@ -1,7 +1,7 @@
-from rest_framework_extensions.cache.decorators import cache_response
+from rest_framework.generics import get_object_or_404
 
-from common.result import Result
-from common.utils.decide import is_admin, is_teacher
+from common.permissions import IsAdminOrTeacherUser
+from common.utils.decide import is_admin
 from common.viewsets import ReadOnlyModelViewSetFormatResult
 from teacher.models import Information as TeacherInformation
 from .models import Information
@@ -12,25 +12,13 @@ from .serializers import ClassInformationSerializer
 class ClassInformationViewSet(ReadOnlyModelViewSetFormatResult):
     queryset = Information.objects.all()
     serializer_class = ClassInformationSerializer
+    permission_classes = (IsAdminOrTeacherUser,)
 
-    @cache_response(key_func="list_cache_key_func")
-    def list(self, request, *args, **kwargs):
-        if is_admin(request):
-            queryset = self.filter_queryset(self.get_queryset())
-            serializer = self.get_serializer(
-                self.paginate_queryset(queryset), many=True
-            )
-            paginated_response = self.get_paginated_response(serializer.data)
-            return Result.OK_200_SUCCESS(data=paginated_response.data)
-        elif is_teacher(request):
-            teacher = TeacherInformation.objects.get(user=request.user)
-            queryset = self.filter_queryset(
-                self.get_queryset().filter(
-                    id__in=teacher.classes.values_list("id", flat=True)
-                )
-            )
-            serializer = self.get_serializer(
-                self.paginate_queryset(queryset), many=True
-            )
-            paginated_response = self.get_paginated_response(serializer.data)
-            return Result.OK_200_SUCCESS(data=paginated_response.data)
+    def get_queryset(self):
+        queryset = super().get_queryset()
+
+        if self.action == "list" and not is_admin(self.request):
+            teacher = get_object_or_404(TeacherInformation, user=self.request.user)
+            return queryset.filter(id__in=teacher.classes.values_list("id", flat=True))
+
+        return queryset

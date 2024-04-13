@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from pydash import pick
 from snowflake.client import get_guid
-from common.utils.serializer import validate_user_id_or_real_name
+from common.utils.gain import get_user_id_from_request
 from iam.models import User
 from iam.serializers import UserSerializer
 
@@ -30,23 +30,18 @@ class ForeignKeyUserWithAddSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         request = self.context["request"]
-        if request.method in ["PATCH", "PUT"]:
-            return attrs
+        if request.method not in ["PATCH", "PUT"]:
+            user_id = get_user_id_from_request(request)
 
-        try:
-            user_id = validate_user_id_or_real_name(request)
-        except serializers.ValidationError as e:
-            raise e
+            # 验证user_id是否存在
+            if not User.objects.filter(id=user_id).exists():
+                raise serializers.ValidationError("用户不存在")
 
-        # 验证user_id是否存在
-        if not User.objects.filter(id=user_id).exists():
-            raise serializers.ValidationError("用户不存在")
+            # 使用snowflake生成的ID
+            snowflake_id = get_guid()
 
-        # 使用snowflake生成的ID
-        snowflake_id = get_guid()
-
-        # 更新attrs字典
-        attrs["id"] = snowflake_id
-        attrs["user_id"] = user_id
+            # 更新attrs字典
+            attrs["id"] = snowflake_id
+            attrs["user_id"] = user_id
 
         return attrs

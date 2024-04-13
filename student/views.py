@@ -71,13 +71,13 @@ class StudentTodayAttendanceListView(LoggingMixin, generics.ListAPIView):
 
     logging_methods = ["GET"]
 
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        return queryset.filter(user_id=self.request.user.id)
+
     def list(self, request, *args, **kwargs):
-        queryset = self.filter_queryset(
-            self.get_queryset().filter(user_id=request.user.id)
-        )
-        serializer = self.get_serializer(self.paginate_queryset(queryset), many=True)
-        paginated_response = self.get_paginated_response(serializer.data)
-        return Result.OK_200_SUCCESS(data=paginated_response.data)
+        response = super().list(request, *args, **kwargs)
+        return Result.OK_200_SUCCESS(data=response.data)
 
 
 class StudentAttendanceAllTuplesListView(

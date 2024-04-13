@@ -66,3 +66,12 @@ class StudentAttendanceAllTupleSerializer(serializers.ModelSerializer):
         model = Attendance
         fields = ("id", "user_id", "date", "group_length")
         read_only_fields = ("id", "user_id")
+
+
+class StudentSimpleSerializer(serializers.ModelSerializer):
+    id = serializers.CharField(read_only=True)
+
+    class Meta:
+        model = Information
+        fields = ("id",)
+        read_only_fields = ("id",)

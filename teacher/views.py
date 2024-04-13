@@ -8,7 +8,7 @@ from rest_framework_extensions.cache.decorators import cache_response
 from rest_framework_tracking.mixins import LoggingMixin
 
 from common.cache import CacheFnMixin
-from common.permissions import IsOwnerOperation
+from common.permissions import IsOwnerOperation, IsAdminOrTeacherUser
 from common.result import Result
 from common.utils.decide import is_admin, is_teacher
 from common.viewsets import (
@@ -65,25 +65,17 @@ class TeacherAttendanceViewSet(ModelViewSetFormatResult):
 class TeacherSimpleViewSet(ReadOnlyModelViewSetFormatResult):
     queryset = Information.objects.all()
     serializer_class = TeacherSimpleSerializer
+    permission_classes = (IsAdminOrTeacherUser,)
     filterset_fields = ("id",)
 
-    @cache_response(key_func="list_cache_key_func")
-    def list(self, request, *args, **kwargs):
-        if is_admin(request):
-            queryset = self.filter_queryset(self.get_queryset())
-            serializer = self.get_serializer(
-                self.paginate_queryset(queryset), many=True
-            )
-            paginated_response = self.get_paginated_response(serializer.data)
-            return Result.OK_200_SUCCESS(data=paginated_response.data)
-        elif is_teacher(request):
-            teacher = TeacherInformation.objects.get(user=request.user)
-            queryset = self.filter_queryset(self.get_queryset().filter(id=teacher.id))
-            serializer = self.get_serializer(
-                self.paginate_queryset(queryset), many=True
-            )
-            paginated_response = self.get_paginated_response(serializer.data)
-            return Result.OK_200_SUCCESS(data=paginated_response.data)
+    def get_queryset(self):
+        queryset = super().get_queryset()
+
+        if is_teacher(self.request):
+            teacher = TeacherInformation.objects.get(user=self.request.user)
+            return queryset.filter(id=teacher.id)
+
+        return queryset
 
 
 class TeacherTodayAttendanceListView(LoggingMixin, generics.ListAPIView):
@@ -95,13 +87,13 @@ class TeacherTodayAttendanceListView(LoggingMixin, generics.ListAPIView):
 
     logging_methods = ["GET"]
 
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        return queryset.filter(user_id=self.request.user.id)
+
     def list(self, request, *args, **kwargs):
-        queryset = self.filter_queryset(
-            self.get_queryset().filter(user_id=request.user.id)
-        )
-        serializer = self.get_serializer(self.paginate_queryset(queryset), many=True)
-        paginated_response = self.get_paginated_response(serializer.data)
-        return Result.OK_200_SUCCESS(data=paginated_response.data)
+        response = super().list(request, *args, **kwargs)
+        return Result.OK_200_SUCCESS(data=response.data)
 
 
 class TeacherAttendanceAllTuplesListView(

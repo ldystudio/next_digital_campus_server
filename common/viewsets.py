@@ -3,6 +3,7 @@ from django.urls import reverse
 from django_filters import rest_framework as filters
 from rest_framework import mixins
 from rest_framework.filters import OrderingFilter
+from rest_framework.generics import get_object_or_404
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet, GenericViewSet
 from rest_framework_extensions.cache.decorators import cache_response
 from rest_framework_tracking.mixins import LoggingMixin
@@ -10,7 +11,7 @@ from rest_framework_tracking.mixins import LoggingMixin
 from common.cache import CacheFnMixin, cache_admin_user_response
 from common.permissions import IsOwnerOperation
 from common.result import Result
-from common.utils.decide import is_this_view
+from common.utils.decide import is_request_mapped_to_view, is_admin
 from iam.models import User
 from teacher.models import Information as TeacherInformation
 
@@ -46,26 +47,25 @@ class ModelViewSetFormatResult(LoggingMixin, CacheFnMixin, ModelViewSet):
     filter_backends = (OrderingFilter, filters.DjangoFilterBackend)
     logging_methods = ["GET", "POST", "PUT", "PATCH", "DELETE"]
 
+    def get_queryset(self):
+        queryset = super().get_queryset()
+
+        if self.action == "list":
+            if not is_admin(self.request):
+                if is_request_mapped_to_view(self.request, "CourseSettingsViewSet"):
+                    teacher = get_object_or_404(
+                        TeacherInformation, user=self.request.user
+                    )
+                    return queryset.filter(teacher=teacher)
+                else:
+                    return queryset.filter(user=self.request.user)
+
+        return queryset
+
     @cache_response(key_func="list_cache_key_func")
     def list(self, request, *args, **kwargs):
-        user = request.user
-        # 非管理员只能查询自己的list
-        if user.user_role == "admin":
-            queryset = self.filter_queryset(self.get_queryset())
-        else:
-            if is_this_view(request, "CourseSettingsViewSet"):
-                teacher = TeacherInformation.objects.get(user=user)
-                queryset = self.filter_queryset(
-                    self.get_queryset().filter(teacher=teacher)
-                )
-            else:
-                queryset = self.filter_queryset(
-                    self.get_queryset().filter(user_id=user.id)
-                )
-        # 分页处理
-        serializer = self.get_serializer(self.paginate_queryset(queryset), many=True)
-        paginated_response = self.get_paginated_response(serializer.data)
-        return Result.OK_200_SUCCESS(data=paginated_response.data)
+        response = super().list(request, *args, **kwargs)
+        return Result.OK_200_SUCCESS(data=response.data)
 
     @cache_response(key_func="object_cache_key_func")
     def retrieve(self, request, *args, **kwargs):
@@ -73,7 +73,9 @@ class ModelViewSetFormatResult(LoggingMixin, CacheFnMixin, ModelViewSet):
         return Result.OK_200_SUCCESS(data=response.data)
 
     def create(self, request, *args, **kwargs):
-        if is_this_view(request, "Attendance"):
+        if is_request_mapped_to_view(
+            request, ["StudentAttendanceViewSet", "TeacherAttendanceViewSet"]
+        ):
             request.data["ip_address"] = request.META.get("REMOTE_ADDR")
         response = super().create(request, *args, **kwargs)
         return Result.OK_201_CREATED(data=response.data)
@@ -112,19 +114,29 @@ class ReadWriteModelViewSetFormatResult(
 
     @cache_admin_user_response(key_func="list_cache_key_func")
     def list(self, request, *args, **kwargs):
-        if request.user.user_role == "admin":
-            response = super().list(request, *args, **kwargs)
-            return Result.OK_200_SUCCESS(data=response.data)
+        if is_request_mapped_to_view(
+            self.request,
+            [
+                "StudentInformationViewSet",
+                "StudentEnrollmentViewSet",
+                "TeacherInformationViewSet",
+            ],
+        ):
+            if not is_admin(request):
+                try:
+                    obj = self.get_queryset().get(user=request.user)
+                except self.queryset.model.DoesNotExist:
+                    return Result.FAIL_404_NOT_FOUND(msg="实体信息不存在")
 
-        try:
-            obj = self.get_queryset().get(user=request.user)
-        except self.queryset.model.DoesNotExist:
-            return Result.FAIL_404_NOT_FOUND()
-        retrieve_url = reverse(
-            request.resolver_match.url_name[:-5] + "-detail",
-            kwargs={"pk": obj.pk},
-        )
-        return redirect(retrieve_url)
+                # 若用户不是管理员，则重定向到实体详情页
+                retrieve_url = reverse(
+                    request.resolver_match.url_name[:-5] + "-detail",
+                    kwargs={"pk": obj.pk},
+                )
+                return redirect(retrieve_url)
+
+        response = super().list(request, *args, **kwargs)
+        return Result.OK_200_SUCCESS(data=response.data)
 
     @cache_response(key_func="object_cache_key_func")
     def retrieve(self, request, *args, **kwargs):
@@ -141,7 +153,7 @@ class ReadWriteModelViewSetFormatResult(
 
         if user_data:
             try:
-                user = User.objects.get(id=instance.user_id)
+                user = get_object_or_404(User, id=instance.user_id)
             except (User.DoesNotExist, self.get_queryset().model.DoesNotExist):
                 return Result.FAIL_404_NOT_FOUND()
 

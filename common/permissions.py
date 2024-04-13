@@ -1,6 +1,6 @@
 from rest_framework.permissions import BasePermission, IsAuthenticated
 
-from common.utils.decide import is_this_view
+from common.utils.decide import is_request_mapped_to_view
 from teacher.models import Information as TeacherInformation
 
 
@@ -19,8 +19,11 @@ class IsOwnerOperation(IsAuthenticated):
         if request.user.user_role == "admin":
             return True
 
-        if is_this_view(request, "CourseSettingsViewSet"):
-            teacher = TeacherInformation.objects.get(user=request.user)
+        if is_request_mapped_to_view(request, "CourseSettingsViewSet"):
+            try:
+                teacher = TeacherInformation.objects.get(user=request.user)
+            except TeacherInformation.DoesNotExist:
+                return False
             return teacher.id in obj.teacher.values_list("id", flat=True)
 
         return obj.user.id == request.user.id
