@@ -80,12 +80,12 @@ class StudentSimpleViewSet(ReadOnlyModelViewSetFormatResult):
         queryset = super().get_queryset()
 
         if is_teacher(self.request):
-            classes = self.request.user.teacher.classes.all()
-            student_enrollments = StudentEnrollment.objects.filter(classes__in=classes)
-            users = User.objects.filter(
-                id__in=get_related_field_values_list(student_enrollments, "user")
+            student_enrollments = StudentEnrollment.objects.filter(
+                classes__in=self.request.user.teacher.classes.all()
             )
-            return queryset.filter(user__in=users)
+            return queryset.filter(
+                user__in=get_related_field_values_list(student_enrollments, "user")
+            )
 
         return queryset
 
