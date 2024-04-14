@@ -1,26 +1,24 @@
 from rest_framework import serializers
-from rest_framework.relations import PrimaryKeyRelatedField
+from rest_framework.relations import SlugRelatedField
 
 from common.serializer.filed import MultipleSlugRelatedField
-from .models import Enter
+from student.serializers import StudentSimpleSerializer
+from .models import Information
 
 
-class ScoreEnterSerializer(serializers.ModelSerializer):
+class ScoreInformationSerializer(serializers.ModelSerializer):
     id = serializers.CharField(read_only=True)
-    student_id = PrimaryKeyRelatedField(
-        source="student.id", read_only=True, pk_field=serializers.CharField()
-    )
-    course = MultipleSlugRelatedField(
-        read_only=True,
-        slug_fields=["course_name"],
-        pk_field=serializers.CharField(),
+    student = StudentSimpleSerializer(read_only=True)
+    course_name = SlugRelatedField(
+        source="course", read_only=True, slug_field="course_name"
     )
     entered_by = MultipleSlugRelatedField(
-        read_only=True, slug_fields=["real_name", "email", "avatar"]
+        read_only=True,
+        slug_fields=["real_name", "email", "avatar"],
+        pk_field=serializers.CharField(),
     )
-    exam_type = serializers.CharField(source="get_exam_type_display")
 
     class Meta:
-        model = Enter
-        exclude = ("student",)
+        model = Information
+        exclude = ("date_joined", "date_updated", "course")
         read_only_fields = ("id", "date_joined", "date_updated")

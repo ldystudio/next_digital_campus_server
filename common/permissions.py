@@ -27,7 +27,7 @@ class IsOwnerOperation(IsAuthenticated):
                 except TeacherInformation.DoesNotExist:
                     return False
                 return teacher.id in get_related_field_values_list(obj.teacher)
-            elif is_request_mapped_to_view(request, "ScoreEnterViewSet"):
+            elif is_request_mapped_to_view(request, "ScoreInformationViewSet"):
                 try:
                     teacher = request.user.teacher
                 except TeacherInformation.DoesNotExist:
@@ -44,7 +44,7 @@ class IsAdminUser(IsAuthenticated):
         )
 
 
-class IsAdminOrTeacherUser(IsAuthenticated):
+class IsTeacherOrAdminUser(IsAuthenticated):
     def has_permission(self, request, view):
         return super().has_permission(request, view) and request.user.user_role in [
             "admin",
@@ -52,7 +52,7 @@ class IsAdminOrTeacherUser(IsAuthenticated):
         ]
 
 
-class IsAdminOrStudentUser(IsAuthenticated):
+class IsStudentOrAdminUser(IsAuthenticated):
     def has_permission(self, request, view):
         return super().has_permission(request, view) and request.user.user_role in [
             "admin",

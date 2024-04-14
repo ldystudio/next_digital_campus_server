@@ -26,10 +26,7 @@ class Information(models.Model):
     date_joined = models.DateTimeField(auto_now_add=True)
     date_updated = models.DateTimeField(auto_now=True)
     user = models.OneToOneField(
-        to=User,
-        on_delete=models.CASCADE,
-        related_name="student",
-        db_comment="用户",
+        to=User, on_delete=models.CASCADE, related_name="student", db_comment="用户"
     )
 
     def __str__(self):
@@ -63,7 +60,7 @@ class Enrollment(models.Model):
         to=ClassInformation,
         on_delete=models.CASCADE,
         related_name="student_enrollment",
-        db_comment="班级",
+        db_comment="所属班级",
     )
 
     def __str__(self):

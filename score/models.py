@@ -5,8 +5,8 @@ from iam.models import User
 from student.models import Information as StudentInformation
 
 
-class Enter(models.Model):
-    exam_time = models.DateField(db_comment="考试日期")
+class Information(models.Model):
+    exam_date = models.DateField(db_comment="考试日期")
     exam_type_choices = ((1, "平时考试"), (2, "期中考试"), (3, "期末考试"))
     exam_type = models.SmallIntegerField(
         db_comment="考试类型", choices=exam_type_choices, default=1

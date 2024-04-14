@@ -52,5 +52,5 @@ class MultipleSlugRelatedField(RelatedField):
     def to_representation(self, value):
         data = {field: getattr(value, field) for field in self.slug_fields}
         if self.pk_field is not None:
-            data[self.pk] = self.pk_field.to_representation(value.pk)
+            data = {self.pk: self.pk_field.to_representation(value.pk)} | data
         return data

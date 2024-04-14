@@ -1,4 +1,4 @@
-from common.permissions import IsAdminOrTeacherUser
+from common.permissions import IsTeacherOrAdminUser
 from common.utils.decide import is_teacher
 from common.viewsets import ReadOnlyModelViewSetFormatResult
 from .models import Information
@@ -9,7 +9,7 @@ from .serializers import ClassInformationSerializer
 class ClassInformationViewSet(ReadOnlyModelViewSetFormatResult):
     queryset = Information.objects.all()
     serializer_class = ClassInformationSerializer
-    permission_classes = (IsAdminOrTeacherUser,)
+    permission_classes = (IsTeacherOrAdminUser,)
 
     def get_queryset(self):
         queryset = super().get_queryset()

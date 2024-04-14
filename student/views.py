@@ -8,9 +8,17 @@ from rest_framework_extensions.cache.decorators import cache_response
 from rest_framework_tracking.mixins import LoggingMixin
 
 from common.cache import CacheFnMixin
-from common.permissions import IsOwnerOperation, IsAdminOrStudentUser
+from common.permissions import IsOwnerOperation, IsStudentOrAdminUser
 from common.result import Result
-from common.viewsets import ReadWriteModelViewSetFormatResult, ModelViewSetFormatResult
+from common.utils.decide import is_teacher
+from common.utils.gain import get_related_field_values_list
+from common.viewsets import (
+    ReadWriteModelViewSetFormatResult,
+    ModelViewSetFormatResult,
+    ReadOnlyModelViewSetFormatResult,
+)
+from iam.models import User
+from student.models import Enrollment as StudentEnrollment
 from .filters import (
     StudentInformationFilter,
     StudentEnrollmentFilter,
@@ -22,6 +30,7 @@ from .serializers import (
     StudentEnrollmentSerializer,
     StudentAttendanceSerializer,
     StudentAttendanceAllTupleSerializer,
+    StudentSimpleSerializer,
 )
 
 
@@ -62,12 +71,31 @@ class StudentAttendanceViewSet(ModelViewSetFormatResult):
         super().perform_update(serializer)
 
 
+class StudentSimpleViewSet(ReadOnlyModelViewSetFormatResult):
+    queryset = Information.objects.all()
+    serializer_class = StudentSimpleSerializer
+    filterset_fields = ("id",)
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+
+        if is_teacher(self.request):
+            classes = self.request.user.teacher.classes.all()
+            student_enrollments = StudentEnrollment.objects.filter(classes__in=classes)
+            users = User.objects.filter(
+                id__in=get_related_field_values_list(student_enrollments, "user")
+            )
+            return queryset.filter(user__in=users)
+
+        return queryset
+
+
 class StudentTodayAttendanceListView(LoggingMixin, generics.ListAPIView):
     queryset = Attendance.objects.all().filter(
         date=datetime.today().strftime("%Y-%m-%d")
     )
     serializer_class = StudentAttendanceSerializer
-    permission_classes = (IsAdminOrStudentUser, IsOwnerOperation)
+    permission_classes = (IsStudentOrAdminUser, IsOwnerOperation)
 
     logging_methods = ["GET"]
 
@@ -89,7 +117,7 @@ class StudentAttendanceAllTuplesListView(
         .annotate(group_length=Count("id"))
     )
     serializer_class = StudentAttendanceAllTupleSerializer
-    permission_classes = (IsAdminOrStudentUser, IsOwnerOperation)
+    permission_classes = (IsStudentOrAdminUser, IsOwnerOperation)
 
     logging_methods = ["GET"]
 

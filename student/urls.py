@@ -13,7 +13,7 @@ router.register(
 router.register(
     "attendance", views.StudentAttendanceViewSet, basename="StudentAttendance"
 )
-
+router.register("simple", views.StudentSimpleViewSet, basename="StudentSimple")
 urlpatterns = [
     path(
         "attendance-today/",

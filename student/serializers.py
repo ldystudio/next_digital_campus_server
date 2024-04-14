@@ -1,7 +1,10 @@
 from rest_framework import serializers
+from rest_framework.relations import SlugRelatedField
 
 from classes.serializers import ClassInformationSerializer
+from common.serializer.filed import MultipleSlugRelatedField
 from common.serializers import ForeignKeyUserSerializer, ForeignKeyUserWithAddSerializer
+from iam.serializers import UserSimpleSerializer
 from .models import Information, Enrollment, Attendance
 
 
@@ -24,12 +27,9 @@ class StudentInformationSerializer(ForeignKeyUserSerializer):
 
 class StudentEnrollmentSerializer(ForeignKeyUserSerializer):
     classes_id = serializers.CharField(read_only=True)
-    classes = ClassInformationSerializer()
-
-    def to_representation(self, instance):
-        ret = super().to_representation(instance)
-        ret["class_name"] = ret.pop("classes").get("class_name")
-        return ret
+    class_name = SlugRelatedField(
+        source="classes", slug_field="class_name", read_only=True
+    )
 
     class Meta:
         model = Enrollment
@@ -44,7 +44,7 @@ class StudentEnrollmentSerializer(ForeignKeyUserSerializer):
             "enrollment_status",
             "notes",
             "user",
-            "classes",
+            "class_name",
         )
         read_only_fields = ("id", "date_joined", "date_updated")
 
@@ -65,3 +65,12 @@ class StudentAttendanceAllTupleSerializer(serializers.ModelSerializer):
         model = Attendance
         fields = ("id", "user_id", "date", "group_length")
         read_only_fields = ("id", "user_id")
+
+
+class StudentSimpleSerializer(ForeignKeyUserSerializer):
+    user = UserSimpleSerializer(read_only=True)
+
+    class Meta:
+        model = Information
+        fields = ("id", "user")
+        read_only_fields = ("id",)

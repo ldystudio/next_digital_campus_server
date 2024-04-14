@@ -3,7 +3,7 @@ from pydash import pick
 from snowflake.client import get_guid
 from common.utils.gain import get_user_id_from_request
 from iam.models import User
-from iam.serializers import UserSerializer
+from iam.serializers import UserSerializer, UserSimpleSerializer
 
 
 class ForeignKeyUserSerializer(serializers.ModelSerializer):
@@ -14,13 +14,14 @@ class ForeignKeyUserSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         ret = super().to_representation(instance)
         # 只保留user中的某些字段
-        ret.update(pick(ret.pop("user"), ["real_name", "phone", "email", "avatar"]))
+        if user := ret.pop("user", None):
+            ret.update(pick(user, ["real_name", "phone", "email", "avatar"]))
         return ret
 
 
 class ForeignKeyUserWithAddSerializer(serializers.ModelSerializer):
     id = serializers.CharField(read_only=True)
-    user = UserSerializer(read_only=True)
+    user = UserSimpleSerializer(read_only=True)
 
     def to_representation(self, instance):
         ret = super().to_representation(instance)

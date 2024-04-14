@@ -8,7 +8,7 @@ from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet, GenericV
 from rest_framework_extensions.cache.decorators import cache_response
 from rest_framework_tracking.mixins import LoggingMixin
 
-from common.cache import CacheFnMixin, cache_admin_user_response
+from common.cache import CacheFnMixin
 from common.permissions import IsOwnerOperation
 from common.result import Result
 from common.utils.decide import (
@@ -24,7 +24,7 @@ class ReadOnlyModelViewSetFormatResult(
 ):
     logging_methods = ["GET"]
 
-    @cache_response(key_func="list_cache_key_func")
+    # @cache_response(key_func="list_cache_key_func")
     def list(self, request, *args, **kwargs):
         response = super().list(request, *args, **kwargs)
         return Result.OK_200_SUCCESS(data=response.data)
@@ -61,7 +61,9 @@ class ModelViewSetFormatResult(LoggingMixin, CacheFnMixin, ModelViewSet):
                     if is_request_mapped_to_view(self.request, "CourseSettingsViewSet"):
                         return queryset.filter(teacher=teacher)
 
-                    elif is_request_mapped_to_view(self.request, "ScoreEnterViewSet"):
+                    elif is_request_mapped_to_view(
+                        self.request, "ScoreInformationViewSet"
+                    ):
                         return queryset.filter(course__teacher=teacher)
 
                 else:
@@ -69,12 +71,12 @@ class ModelViewSetFormatResult(LoggingMixin, CacheFnMixin, ModelViewSet):
 
         return queryset
 
-    @cache_response(key_func="list_cache_key_func")
+    # @cache_response(key_func="list_cache_key_func")
     def list(self, request, *args, **kwargs):
         response = super().list(request, *args, **kwargs)
         return Result.OK_200_SUCCESS(data=response.data)
 
-    @cache_response(key_func="object_cache_key_func")
+    # @cache_response(key_func="object_cache_key_func")
     def retrieve(self, request, *args, **kwargs):
         response = super().retrieve(request, *args, **kwargs)
         return Result.OK_200_SUCCESS(data=response.data)
@@ -119,7 +121,7 @@ class ReadWriteModelViewSetFormatResult(
                 model_data[key] = value
         return user_data, model_data
 
-    @cache_admin_user_response(key_func="list_cache_key_func")
+    # @cache_admin_user_response(key_func="list_cache_key_func")
     def list(self, request, *args, **kwargs):
         if is_request_mapped_to_view(
             self.request,
@@ -145,7 +147,7 @@ class ReadWriteModelViewSetFormatResult(
         response = super().list(request, *args, **kwargs)
         return Result.OK_200_SUCCESS(data=response.data)
 
-    @cache_response(key_func="object_cache_key_func")
+    # @cache_response(key_func="object_cache_key_func")
     def retrieve(self, request, *args, **kwargs):
         response = super().retrieve(request, *args, **kwargs)
         return Result.OK_200_SUCCESS(data=response.data)

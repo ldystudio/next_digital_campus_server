@@ -8,7 +8,7 @@ from rest_framework_extensions.cache.decorators import cache_response
 from rest_framework_tracking.mixins import LoggingMixin
 
 from common.cache import CacheFnMixin
-from common.permissions import IsOwnerOperation, IsAdminOrTeacherUser
+from common.permissions import IsOwnerOperation, IsTeacherOrAdminUser
 from common.result import Result
 from common.utils.decide import is_teacher
 from common.viewsets import (
@@ -64,7 +64,7 @@ class TeacherAttendanceViewSet(ModelViewSetFormatResult):
 class TeacherSimpleViewSet(ReadOnlyModelViewSetFormatResult):
     queryset = Information.objects.all()
     serializer_class = TeacherSimpleSerializer
-    permission_classes = (IsAdminOrTeacherUser,)
+    permission_classes = (IsTeacherOrAdminUser,)
     filterset_fields = ("id",)
 
     def get_queryset(self):
@@ -81,7 +81,7 @@ class TeacherTodayAttendanceListView(LoggingMixin, generics.ListAPIView):
         date=datetime.today().strftime("%Y-%m-%d")
     )
     serializer_class = TeacherAttendanceSerializer
-    permission_classes = (IsAdminOrTeacherUser, IsOwnerOperation)
+    permission_classes = (IsTeacherOrAdminUser, IsOwnerOperation)
 
     logging_methods = ["GET"]
 
@@ -103,7 +103,7 @@ class TeacherAttendanceAllTuplesListView(
         .annotate(group_length=Count("id"))
     )
     serializer_class = TeacherAttendanceAllTupleSerializer
-    permission_classes = (IsAdminOrTeacherUser, IsOwnerOperation)
+    permission_classes = (IsTeacherOrAdminUser, IsOwnerOperation)
 
     logging_methods = ["GET"]
 

@@ -4,7 +4,7 @@ from rest_framework.permissions import IsAuthenticated
 from snowflake.client import get_guid
 
 from common.pagination import UnlimitedPagination
-from common.permissions import IsOwnerOperation, IsAdminOrTeacherUser
+from common.permissions import IsOwnerOperation, IsTeacherOrAdminUser
 from common.result import Result
 from common.utils.decide import is_teacher, is_student
 from common.utils.file import file_field_path_delete
@@ -28,59 +28,64 @@ class CourseSettingsViewSet(ModelViewSetFormatResult):
     queryset = Setting.objects.all().distinct()
     serializer_class = CourseSettingSerializer
     permission_classes = (
-        IsAdminOrTeacherUser,
+        IsTeacherOrAdminUser,
         IsOwnerOperation,
     )
     filterset_class = CourseSettingFilter
 
-    def update(self, request, *args, **kwargs):
-        partial = kwargs.pop("partial", False)
-        try:
-            instance = self.get_object()
-        except Http404:
-            return Result.FAIL_400_INVALID_PARAM(msg="请先创建课程后再上传图片")
 
-        serializer = self.get_serializer(instance, data=request.data, partial=partial)
-        serializer.is_valid(raise_exception=True)
+def update(self, request, *args, **kwargs):
+    partial = kwargs.pop("partial", False)
+    try:
+        instance = self.get_object()
+    except Http404:
+        return Result.FAIL_400_INVALID_PARAM(msg="请先创建课程后再上传图片")
 
-        foreign_key_fields_update(["teacher", "classes"], request.data, instance)
-        file_field_path_delete("course_picture", request.data, instance.course_picture)
+    serializer = self.get_serializer(instance, data=request.data, partial=partial)
+    serializer.is_valid(raise_exception=True)
 
-        self.perform_update(serializer)
-        return Result.OK_202_ACCEPTED(data=serializer.data)
+    foreign_key_fields_update(["teacher", "classes"], request.data, instance)
+    file_field_path_delete("course_picture", request.data, instance.course_picture)
 
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
+    self.perform_update(serializer)
+    return Result.OK_202_ACCEPTED(data=serializer.data)
 
-        serializer.validated_data["id"] = get_guid()
 
-        if is_teacher(request):
-            teacher = request.user.teacher
-            serializer.validated_data["teacher"] = [teacher.id]
+def create(self, request, *args, **kwargs):
+    serializer = self.get_serializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
 
-        foreign_key_fields_create(["teacher", "classes"], request.data, serializer)
+    serializer.validated_data["id"] = get_guid()
 
-        self.perform_create(serializer)
-        return Result.OK_201_CREATED(data=serializer.data)
+    if is_teacher(request):
+        teacher = request.user.teacher
+        serializer.validated_data["teacher"] = [teacher.id]
 
-    def perform_create(self, serializer):
-        self.delete_cache_by_path_prefix(
-            path=["/api/v1/course/schedule/", "/api/v1/course/choose/"]
-        )
-        super().perform_create(serializer)
+    foreign_key_fields_create(["teacher", "classes"], request.data, serializer)
 
-    def perform_update(self, serializer):
-        self.delete_cache_by_path_prefix(
-            path=["/api/v1/course/schedule/", "/api/v1/course/choose/"]
-        )
-        super().perform_update(serializer)
+    self.perform_create(serializer)
+    return Result.OK_201_CREATED(data=serializer.data)
 
-    def perform_destroy(self, instance):
-        self.delete_cache_by_path_prefix(
-            path=["/api/v1/course/schedule/", "/api/v1/course/choose/"]
-        )
-        super().perform_destroy(instance)
+
+def perform_create(self, serializer):
+    self.delete_cache_by_path_prefix(
+        path=["/api/v1/course/schedule/", "/api/v1/course/choose/"]
+    )
+    super().perform_create(serializer)
+
+
+def perform_update(self, serializer):
+    self.delete_cache_by_path_prefix(
+        path=["/api/v1/course/schedule/", "/api/v1/course/choose/"]
+    )
+    super().perform_update(serializer)
+
+
+def perform_destroy(self, instance):
+    self.delete_cache_by_path_prefix(
+        path=["/api/v1/course/schedule/", "/api/v1/course/choose/"]
+    )
+    super().perform_destroy(instance)
 
 
 class CourseTimeViewSet(ReadOnlyModelViewSetFormatResult):

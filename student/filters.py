@@ -29,12 +29,10 @@ class StudentInformationFilter(django_filters.FilterSet):
 
 class StudentEnrollmentFilter(django_filters.FilterSet):
     real_name = django_filters.CharFilter(
-        field_name="user__real_name", lookup_expr="icontains"
+        field_name="student__user__real_name", lookup_expr="icontains"
     )
-    class_name = django_filters.CharFilter(
-        field_name="class_name", lookup_expr="icontains"
-    )
-    address = django_filters.CharFilter(field_name="address", lookup_expr="icontains")
+    class_name = django_filters.CharFilter(lookup_expr="icontains")
+    address = django_filters.CharFilter(lookup_expr="icontains")
     enrollment_status = django_filters.CharFilter(method="filter_enrollment_status")
 
     def filter_enrollment_status(self, queryset, name, value):
@@ -49,7 +47,6 @@ class StudentEnrollmentFilter(django_filters.FilterSet):
             "class_name",
             "address",
             "enrollment_status",
-            "user_id",
         )
 
 
