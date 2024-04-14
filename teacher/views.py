@@ -10,13 +10,12 @@ from rest_framework_tracking.mixins import LoggingMixin
 from common.cache import CacheFnMixin
 from common.permissions import IsOwnerOperation, IsAdminOrTeacherUser
 from common.result import Result
-from common.utils.decide import is_admin, is_teacher
+from common.utils.decide import is_teacher
 from common.viewsets import (
     ReadWriteModelViewSetFormatResult,
     ModelViewSetFormatResult,
     ReadOnlyModelViewSetFormatResult,
 )
-from teacher.models import Information as TeacherInformation
 from .filters import (
     TeacherInformationFilter,
     TeacherAttendanceFilter,
@@ -72,8 +71,7 @@ class TeacherSimpleViewSet(ReadOnlyModelViewSetFormatResult):
         queryset = super().get_queryset()
 
         if is_teacher(self.request):
-            teacher = TeacherInformation.objects.get(user=self.request.user)
-            return queryset.filter(id=teacher.id)
+            return queryset.filter(id=self.request.user.teacher.id)
 
         return queryset
 
@@ -83,7 +81,7 @@ class TeacherTodayAttendanceListView(LoggingMixin, generics.ListAPIView):
         date=datetime.today().strftime("%Y-%m-%d")
     )
     serializer_class = TeacherAttendanceSerializer
-    permission_classes = (IsOwnerOperation,)
+    permission_classes = (IsAdminOrTeacherUser, IsOwnerOperation)
 
     logging_methods = ["GET"]
 
@@ -105,7 +103,7 @@ class TeacherAttendanceAllTuplesListView(
         .annotate(group_length=Count("id"))
     )
     serializer_class = TeacherAttendanceAllTupleSerializer
-    permission_classes = (IsOwnerOperation,)
+    permission_classes = (IsAdminOrTeacherUser, IsOwnerOperation)
 
     logging_methods = ["GET"]
 

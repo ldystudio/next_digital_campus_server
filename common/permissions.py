@@ -1,6 +1,7 @@
 from rest_framework.permissions import BasePermission, IsAuthenticated
 
-from common.utils.decide import is_request_mapped_to_view
+from common.utils.decide import is_request_mapped_to_view, is_admin, is_teacher
+from common.utils.gain import get_related_field_values_list
 from teacher.models import Information as TeacherInformation
 
 
@@ -16,15 +17,22 @@ class IsOwnerOperation(IsAuthenticated):
 
     def has_object_permission(self, request, view, obj):
         # 管理员可以操作所有实体
-        if request.user.user_role == "admin":
+        if is_admin(request):
             return True
 
-        if is_request_mapped_to_view(request, "CourseSettingsViewSet"):
-            try:
-                teacher = TeacherInformation.objects.get(user=request.user)
-            except TeacherInformation.DoesNotExist:
-                return False
-            return teacher.id in obj.teacher.values_list("id", flat=True)
+        if is_teacher(request):
+            if is_request_mapped_to_view(request, "CourseSettingsViewSet"):
+                try:
+                    teacher = request.user.teacher
+                except TeacherInformation.DoesNotExist:
+                    return False
+                return teacher.id in get_related_field_values_list(obj.teacher)
+            elif is_request_mapped_to_view(request, "ScoreEnterViewSet"):
+                try:
+                    teacher = request.user.teacher
+                except TeacherInformation.DoesNotExist:
+                    return False
+                return obj.course_id in get_related_field_values_list(teacher.course)
 
         return obj.user.id == request.user.id
 
@@ -41,4 +49,12 @@ class IsAdminOrTeacherUser(IsAuthenticated):
         return super().has_permission(request, view) and request.user.user_role in [
             "admin",
             "teacher",
+        ]
+
+
+class IsAdminOrStudentUser(IsAuthenticated):
+    def has_permission(self, request, view):
+        return super().has_permission(request, view) and request.user.user_role in [
+            "admin",
+            "student",
         ]

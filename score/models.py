@@ -1,7 +1,8 @@
 from django.db import models
-from student.models import Information as StudentInformation
+
 from course.models import Setting as CourseSetting
 from iam.models import User
+from student.models import Information as StudentInformation
 
 
 class Enter(models.Model):
@@ -19,10 +20,16 @@ class Enter(models.Model):
         on_delete=models.CASCADE,
     )
     course = models.ForeignKey(
-        db_comment="课程", to=CourseSetting, on_delete=models.CASCADE
+        db_comment="课程",
+        to=CourseSetting,
+        on_delete=models.CASCADE,
+        related_name="score",
     )
     student = models.ForeignKey(
-        db_comment="学生", to=StudentInformation, on_delete=models.CASCADE
+        db_comment="学生",
+        to=StudentInformation,
+        on_delete=models.CASCADE,
+        related_name="score",
     )
 
     def __str__(self):

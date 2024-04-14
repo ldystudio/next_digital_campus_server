@@ -1,6 +1,7 @@
 from django.db import models
-from iam.models import User
+
 from classes.models import Information as ClassInformation
+from iam.models import User
 
 
 class Information(models.Model):
@@ -26,12 +27,12 @@ class Information(models.Model):
     user = models.OneToOneField(
         User,
         on_delete=models.CASCADE,
-        related_name="teacher_information",
+        related_name="teacher",
         db_comment="用户",
     )
     classes = models.ManyToManyField(
         to=ClassInformation,
-        related_name="teacher_class",
+        related_name="teacher",
     )
 
     def __str__(self):

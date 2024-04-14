@@ -1,7 +1,7 @@
 from django.db import models
 
-from iam.models import User
 from classes.models import Information as ClassInformation
+from iam.models import User
 
 
 class Information(models.Model):
@@ -28,7 +28,7 @@ class Information(models.Model):
     user = models.OneToOneField(
         to=User,
         on_delete=models.CASCADE,
-        related_name="student_information",
+        related_name="student",
         db_comment="用户",
     )
 
@@ -62,7 +62,7 @@ class Enrollment(models.Model):
     classes = models.ForeignKey(
         to=ClassInformation,
         on_delete=models.CASCADE,
-        related_name="class_information",
+        related_name="student_enrollment",
         db_comment="班级",
     )
 

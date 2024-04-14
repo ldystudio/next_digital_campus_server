@@ -11,9 +11,12 @@ from rest_framework_tracking.mixins import LoggingMixin
 from common.cache import CacheFnMixin, cache_admin_user_response
 from common.permissions import IsOwnerOperation
 from common.result import Result
-from common.utils.decide import is_request_mapped_to_view, is_admin
+from common.utils.decide import (
+    is_request_mapped_to_view,
+    is_admin,
+    is_teacher,
+)
 from iam.models import User
-from teacher.models import Information as TeacherInformation
 
 
 class ReadOnlyModelViewSetFormatResult(
@@ -52,22 +55,26 @@ class ModelViewSetFormatResult(LoggingMixin, CacheFnMixin, ModelViewSet):
 
         if self.action == "list":
             if not is_admin(self.request):
-                if is_request_mapped_to_view(self.request, "CourseSettingsViewSet"):
-                    teacher = get_object_or_404(
-                        TeacherInformation, user=self.request.user
-                    )
-                    return queryset.filter(teacher=teacher)
+                if is_teacher(self.request):
+                    teacher = self.request.user.teacher
+
+                    if is_request_mapped_to_view(self.request, "CourseSettingsViewSet"):
+                        return queryset.filter(teacher=teacher)
+
+                    elif is_request_mapped_to_view(self.request, "ScoreEnterViewSet"):
+                        return queryset.filter(course__teacher=teacher)
+
                 else:
                     return queryset.filter(user=self.request.user)
 
         return queryset
 
-    @cache_response(key_func="list_cache_key_func")
+    # @cache_response(key_func="list_cache_key_func")
     def list(self, request, *args, **kwargs):
         response = super().list(request, *args, **kwargs)
         return Result.OK_200_SUCCESS(data=response.data)
 
-    @cache_response(key_func="object_cache_key_func")
+    # @cache_response(key_func="object_cache_key_func")
     def retrieve(self, request, *args, **kwargs):
         response = super().retrieve(request, *args, **kwargs)
         return Result.OK_200_SUCCESS(data=response.data)

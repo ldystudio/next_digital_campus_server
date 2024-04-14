@@ -1,8 +1,8 @@
 from django.db import models
 
-from teacher.models import Information as TeacherInformation
-from student.models import Information as StudentInformation
 from classes.models import Information as ClassInformation
+from student.models import Information as StudentInformation
+from teacher.models import Information as TeacherInformation
 
 
 class Setting(models.Model):
@@ -47,16 +47,16 @@ class Setting(models.Model):
     date_updated = models.DateTimeField(auto_now=True)
     teacher = models.ManyToManyField(
         to=TeacherInformation,
-        related_name="course_teacher",
+        related_name="course",
     )
     student = models.ManyToManyField(
         to=StudentInformation,
-        related_name="course_student",
+        related_name="course",
         blank=True,
     )
     classes = models.ManyToManyField(
         to=ClassInformation,
-        related_name="course_class",
+        related_name="course",
         blank=True,
     )
 

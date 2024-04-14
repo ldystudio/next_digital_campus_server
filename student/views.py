@@ -8,7 +8,7 @@ from rest_framework_extensions.cache.decorators import cache_response
 from rest_framework_tracking.mixins import LoggingMixin
 
 from common.cache import CacheFnMixin
-from common.permissions import IsOwnerOperation
+from common.permissions import IsOwnerOperation, IsAdminOrStudentUser
 from common.result import Result
 from common.viewsets import ReadWriteModelViewSetFormatResult, ModelViewSetFormatResult
 from .filters import (
@@ -67,13 +67,13 @@ class StudentTodayAttendanceListView(LoggingMixin, generics.ListAPIView):
         date=datetime.today().strftime("%Y-%m-%d")
     )
     serializer_class = StudentAttendanceSerializer
-    permission_classes = (IsOwnerOperation,)
+    permission_classes = (IsAdminOrStudentUser, IsOwnerOperation)
 
     logging_methods = ["GET"]
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        return queryset.filter(user_id=self.request.user.id)
+        return queryset.filter(user=self.request.user)
 
     def list(self, request, *args, **kwargs):
         response = super().list(request, *args, **kwargs)
@@ -89,7 +89,7 @@ class StudentAttendanceAllTuplesListView(
         .annotate(group_length=Count("id"))
     )
     serializer_class = StudentAttendanceAllTupleSerializer
-    permission_classes = (IsOwnerOperation,)
+    permission_classes = (IsAdminOrStudentUser, IsOwnerOperation)
 
     logging_methods = ["GET"]
 

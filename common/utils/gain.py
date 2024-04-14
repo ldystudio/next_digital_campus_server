@@ -21,3 +21,7 @@ def get_user_id_from_request(request):
             return request.user.id
 
     return request.user.id
+
+
+def get_related_field_values_list(related, field="id"):
+    return related.values_list(field, flat=True)

@@ -8,9 +8,7 @@ class StudentInformationFilter(django_filters.FilterSet):
         field_name="user__real_name", lookup_expr="icontains"
     )
     phone = django_filters.CharFilter(field_name="user__phone", lookup_expr="icontains")
-    identification_number = django_filters.CharFilter(
-        field_name="identification_number", lookup_expr="icontains"
-    )
+    identification_number = django_filters.CharFilter(lookup_expr="icontains")
     gender = django_filters.CharFilter(method="filter_gender")
 
     def filter_gender(self, queryset, name, value):
