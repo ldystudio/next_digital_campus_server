@@ -69,12 +69,12 @@ class ModelViewSetFormatResult(LoggingMixin, CacheFnMixin, ModelViewSet):
 
         return queryset
 
-    # @cache_response(key_func="list_cache_key_func")
+    @cache_response(key_func="list_cache_key_func")
     def list(self, request, *args, **kwargs):
         response = super().list(request, *args, **kwargs)
         return Result.OK_200_SUCCESS(data=response.data)
 
-    # @cache_response(key_func="object_cache_key_func")
+    @cache_response(key_func="object_cache_key_func")
     def retrieve(self, request, *args, **kwargs):
         response = super().retrieve(request, *args, **kwargs)
         return Result.OK_200_SUCCESS(data=response.data)
