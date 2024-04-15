@@ -1,5 +1,5 @@
-from rest_framework.serializers import RelatedField
 from django.utils.translation import gettext_lazy as _
+from rest_framework.serializers import RelatedField, CharField
 
 
 class MultipleSlugRelatedField(RelatedField):
@@ -13,7 +13,7 @@ class MultipleSlugRelatedField(RelatedField):
     Example:
 
     class CourseSerializer(serializers.ModelSerializer):
-        course = MultipleSlugRelatedField(read_only=True, slug_fields=["course_name"], pk="course_id", pk_field=serializers.CharField())
+        course = MultipleSlugRelatedField(read_only=True, slug_fields=["course_name"], pk="course_id", pk_field=CharField())
         class Meta:
             model = Course
             fields = ["course", ]
@@ -29,11 +29,11 @@ class MultipleSlugRelatedField(RelatedField):
     """
 
     default_error_messages = {
-        "does_not_exist": _("Object with given slugs does not exist."),
-        "invalid": _("Invalid value."),
+        "does_not_exist": _("具有给定属性的对象不存在。"),
+        "invalid": _("无效的输入"),
     }
 
-    def __init__(self, slug_fields=None, pk="id", pk_field=None, **kwargs):
+    def __init__(self, slug_fields=None, pk="id", pk_field=CharField(), **kwargs):
         assert slug_fields is not None, "The `slug_fields` argument is required."
         self.slug_fields = slug_fields
         self.pk = pk
@@ -41,16 +41,26 @@ class MultipleSlugRelatedField(RelatedField):
         super().__init__(**kwargs)
 
     def to_internal_value(self, data):
+        """
+        Converts the field's value to a model instance.
+
+        Args:
+            data (int, str): The Object's primary key
+
+        Returns:
+            Model instance: The model instance with the given slug values.
+
+        Raises:
+            ValidationError: If the model instance does not exist.
+        """
         queryset = self.get_queryset()
         try:
-            return queryset.get(**{field: data[field] for field in self.slug_fields})
+            return queryset.get(**{self.pk: data})
         except queryset.model.DoesNotExist:
             self.fail("does_not_exist")
         except (TypeError, ValueError):
             self.fail("invalid")
 
     def to_representation(self, value):
-        data = {field: getattr(value, field) for field in self.slug_fields}
-        if self.pk_field is not None:
-            data = {self.pk: self.pk_field.to_representation(value.pk)} | data
-        return data
+        data = {self.pk: self.pk_field.to_representation(value.pk)}
+        return data | {field: getattr(value, field) for field in self.slug_fields}

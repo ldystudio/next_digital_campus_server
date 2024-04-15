@@ -55,10 +55,7 @@ class TeacherAttendanceViewSet(ModelViewSetFormatResult):
     queryset = Attendance.objects.all()
     serializer_class = TeacherAttendanceSerializer
     filterset_class = TeacherAttendanceFilter
-
-    def perform_create(self, serializer):
-        self.delete_cache_by_path_prefix(path="/api/v1/teacher/attendance-all/")
-        super().perform_update(serializer)
+    cache_paths_to_delete = [None, "/api/v1/teacher/attendance-all/"]
 
 
 class TeacherSimpleViewSet(ReadOnlyModelViewSetFormatResult):

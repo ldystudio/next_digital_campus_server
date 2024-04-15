@@ -7,15 +7,20 @@ from common.utils.decide import is_admin
 
 
 class CacheFnMixin:
-    def delete_cache_by_path_prefix(self, path: str | list = None):
+    def delete_cache_by_path_prefix(self, path: str | list | None):
+        request = self.request
         if path is None:
-            path = self.request.path
-            if self.request.method != "POST":
+            path = request.path
+            if request.method != "POST":
                 path = "/".join(path.split("/")[:-2])
         elif isinstance(path, list):
             for p in path:
                 self.delete_cache_by_path_prefix(p)
-        keys = cache.keys(f"{path}*request_user={self.request.user}")
+        keys = (
+            cache.keys(f"{path}*request_user={request.user}")
+            if not is_admin(request)
+            else cache.keys(f"{path}*")
+        )
         cache.delete_many(keys)
 
     @staticmethod
@@ -28,15 +33,15 @@ class CacheFnMixin:
         return f"{request.path}?request_user={request.user}"
 
     def perform_create(self, serializer):
-        self.delete_cache_by_path_prefix()
+        self.delete_cache_by_path_prefix(self.cache_paths_to_delete)
         serializer.save()
 
     def perform_update(self, serializer):
-        self.delete_cache_by_path_prefix()
+        self.delete_cache_by_path_prefix(self.cache_paths_to_delete)
         serializer.save()
 
     def perform_destroy(self, instance):
-        self.delete_cache_by_path_prefix()
+        self.delete_cache_by_path_prefix(self.cache_paths_to_delete)
         instance.delete()
 
 

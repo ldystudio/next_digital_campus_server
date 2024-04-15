@@ -65,3 +65,12 @@ class CourseChooseSerializer(serializers.ModelSerializer):
             "teacher",
         )
         read_only_fields = ("id", "date_joined", "date_updated")
+
+
+class CourseSimpleSerializer(serializers.ModelSerializer):
+    id = serializers.CharField(read_only=True)
+
+    class Meta:
+        model = Setting
+        fields = ("id", "course_name")
+        read_only_fields = ("id",)

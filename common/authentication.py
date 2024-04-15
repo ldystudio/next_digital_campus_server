@@ -50,7 +50,7 @@ class LoginModelBackend(ModelBackend):
         return user
 
 
-class JWTCookieAuthentication(JWTAuthentication):
+class JWTCookieOrHeaderAuthentication(JWTAuthentication):
     def authenticate(self, request):
         token = self.get_token(request)
         if token is None:
@@ -63,10 +63,12 @@ class JWTCookieAuthentication(JWTAuthentication):
             raise AuthenticationFailed("无效的token")
 
         if not in_token_caches(validated_token, user.id):
-            raise InvalidToken("token已失效")
+            raise InvalidToken("token已过期")
 
         return user, validated_token
 
-    @staticmethod
-    def get_token(request):
-        return request.COOKIES.get("accessToken")
+    def get_token(self, request):
+        header = self.get_header(request)
+        if header is None:
+            return request.COOKIES.get("accessToken", None)
+        return self.get_raw_token(header)

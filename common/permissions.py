@@ -21,17 +21,12 @@ class IsOwnerOperation(IsAuthenticated):
             return True
 
         if is_teacher(request):
+            teacher = request.user.teacher
+
             if is_request_mapped_to_view(request, "CourseSettingsViewSet"):
-                try:
-                    teacher = request.user.teacher
-                except TeacherInformation.DoesNotExist:
-                    return False
                 return teacher.id in get_related_field_values_list(obj.teacher)
+
             elif is_request_mapped_to_view(request, "ScoreInformationViewSet"):
-                try:
-                    teacher = request.user.teacher
-                except TeacherInformation.DoesNotExist:
-                    return False
                 return obj.course_id in get_related_field_values_list(teacher.course)
 
         return obj.user.id == request.user.id

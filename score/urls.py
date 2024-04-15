@@ -3,7 +3,7 @@ from . import views
 
 router = SimpleRouter()
 router.register(
-    "information", views.ScoreInformationViewSet, basename="ScoreInformation"
+    "query", views.ScoreInformationViewSet, basename="ScoreInformation"
 )
 # router.register("time", views.CourseTimeViewSet, basename="CourseTime")
 # router.register("schedule", views.CourseScheduleViewSet, basename="CourseSchedule")

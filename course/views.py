@@ -20,6 +20,7 @@ from .serializers import (
     CourseSettingSerializer,
     CourseTimeSerializer,
     CourseChooseSerializer,
+    CourseSimpleSerializer,
 )
 
 
@@ -32,60 +33,49 @@ class CourseSettingsViewSet(ModelViewSetFormatResult):
         IsOwnerOperation,
     )
     filterset_class = CourseSettingFilter
+    cache_paths_to_delete = [
+        None,
+        "/api/v1/course/schedule/",
+        "/api/v1/course/choose/",
+        "/api/v1/course/simple/",
+    ]
 
+    def get_queryset(self):
+        queryset = self.queryset
+        if self.action == "list" and is_teacher(self.request):
+            return queryset.filter(teacher=self.request.user.teacher)
+        return queryset
 
-def update(self, request, *args, **kwargs):
-    partial = kwargs.pop("partial", False)
-    try:
-        instance = self.get_object()
-    except Http404:
-        return Result.FAIL_400_INVALID_PARAM(msg="请先创建课程后再上传图片")
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop("partial", False)
+        try:
+            instance = self.get_object()
+        except Http404:
+            return Result.FAIL_400_INVALID_PARAM(msg="请先创建课程后再上传图片")
 
-    serializer = self.get_serializer(instance, data=request.data, partial=partial)
-    serializer.is_valid(raise_exception=True)
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
 
-    foreign_key_fields_update(["teacher", "classes"], request.data, instance)
-    file_field_path_delete("course_picture", request.data, instance.course_picture)
+        foreign_key_fields_update(["teacher", "classes"], request.data, instance)
+        file_field_path_delete("course_picture", request.data, instance.course_picture)
 
-    self.perform_update(serializer)
-    return Result.OK_202_ACCEPTED(data=serializer.data)
+        self.perform_update(serializer)
+        return Result.OK_202_ACCEPTED(data=serializer.data)
 
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
 
-def create(self, request, *args, **kwargs):
-    serializer = self.get_serializer(data=request.data)
-    serializer.is_valid(raise_exception=True)
+        serializer.validated_data["id"] = get_guid()
 
-    serializer.validated_data["id"] = get_guid()
+        if is_teacher(request):
+            teacher = request.user.teacher
+            serializer.validated_data["teacher"] = [teacher.id]
 
-    if is_teacher(request):
-        teacher = request.user.teacher
-        serializer.validated_data["teacher"] = [teacher.id]
+        foreign_key_fields_create(["teacher", "classes"], request.data, serializer)
 
-    foreign_key_fields_create(["teacher", "classes"], request.data, serializer)
-
-    self.perform_create(serializer)
-    return Result.OK_201_CREATED(data=serializer.data)
-
-
-def perform_create(self, serializer):
-    self.delete_cache_by_path_prefix(
-        path=["/api/v1/course/schedule/", "/api/v1/course/choose/"]
-    )
-    super().perform_create(serializer)
-
-
-def perform_update(self, serializer):
-    self.delete_cache_by_path_prefix(
-        path=["/api/v1/course/schedule/", "/api/v1/course/choose/"]
-    )
-    super().perform_update(serializer)
-
-
-def perform_destroy(self, instance):
-    self.delete_cache_by_path_prefix(
-        path=["/api/v1/course/schedule/", "/api/v1/course/choose/"]
-    )
-    super().perform_destroy(instance)
+        self.perform_create(serializer)
+        return Result.OK_201_CREATED(data=serializer.data)
 
 
 class CourseTimeViewSet(ReadOnlyModelViewSetFormatResult):
@@ -120,6 +110,7 @@ class CourseChooseViewSet(ReadWriteModelViewSetFormatResult):
     serializer_class = CourseChooseSerializer
     permission_classes = (IsAuthenticated,)
     filterset_class = CourseSettingFilter
+    cache_paths_to_delete = [None, "/api/v1/course/schedule/"]
 
     def get_queryset(self):
         queryset = super().get_queryset()
@@ -137,6 +128,20 @@ class CourseChooseViewSet(ReadWriteModelViewSetFormatResult):
 
         instance.student.add(request.user.student)
 
-        self.delete_cache_by_path_prefix(path="/api/v1/course/schedule/")
         self.perform_update(serializer)
         return Result.OK_202_ACCEPTED(data=serializer.data)
+
+
+class CourseSimpleViewSet(ReadOnlyModelViewSetFormatResult):
+    queryset = Setting.objects.all()
+    serializer_class = CourseSimpleSerializer
+    permission_classes = (IsTeacherOrAdminUser,)
+    filterset_fields = ("id",)
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+
+        if is_teacher(self.request):
+            return queryset.filter(teacher=self.request.user.teacher)
+
+        return queryset

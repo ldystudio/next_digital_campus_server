@@ -17,10 +17,10 @@ Including another URLconf
 from django.conf import settings
 from django.conf.urls.static import static
 from django.urls import path, include
+from rest_framework.documentation import include_docs_urls
 
 urlpatterns = [
     # path('admin/', admin.site.urls),
-    # path("docs/", include_docs_urls(title="DRF Api文档", description="Django")),
     path(
         "api/v1/",
         include(
@@ -37,3 +37,8 @@ urlpatterns = [
     ),
     *static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT),
 ]
+
+if settings.DEBUG:
+    urlpatterns.append(
+        path("docs/", include_docs_urls(title="Next数字校园Api文档", description="Django"))
+    )

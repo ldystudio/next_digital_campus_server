@@ -139,7 +139,7 @@ REST_FRAMEWORK = {
         # JWT认证
         # 'rest_framework_simplejwt.authentication.JWTAuthentication',
         # 重写JWT认证，加入redis黑名单机制
-        "common.authentication.JWTCookieAuthentication",
+        "common.authentication.JWTCookieOrHeaderAuthentication",
     ),
     # 权限
     "DEFAULT_PERMISSION_CLASSES": (

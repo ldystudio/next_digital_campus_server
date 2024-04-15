@@ -17,8 +17,6 @@ from common.viewsets import (
     ModelViewSetFormatResult,
     ReadOnlyModelViewSetFormatResult,
 )
-from iam.models import User
-from student.models import Enrollment as StudentEnrollment
 from .filters import (
     StudentInformationFilter,
     StudentEnrollmentFilter,
@@ -65,10 +63,7 @@ class StudentAttendanceViewSet(ModelViewSetFormatResult):
     queryset = Attendance.objects.all()
     serializer_class = StudentAttendanceSerializer
     filterset_class = StudentAttendanceFilter
-
-    def perform_create(self, serializer):
-        self.delete_cache_by_path_prefix(path="/api/v1/student/attendance-all/")
-        super().perform_update(serializer)
+    cache_paths_to_delete = [None, "/api/v1/student/attendance-all/"]
 
 
 class StudentSimpleViewSet(ReadOnlyModelViewSetFormatResult):
@@ -80,11 +75,9 @@ class StudentSimpleViewSet(ReadOnlyModelViewSetFormatResult):
         queryset = super().get_queryset()
 
         if is_teacher(self.request):
-            student_enrollments = StudentEnrollment.objects.filter(
-                classes__in=self.request.user.teacher.classes.all()
-            )
+            course = self.request.user.teacher.course.all()
             return queryset.filter(
-                user__in=get_related_field_values_list(student_enrollments, "user")
+                id__in=get_related_field_values_list(course, "student")
             )
 
         return queryset

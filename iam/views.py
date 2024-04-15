@@ -18,9 +18,9 @@ from rest_framework_simplejwt.views import (
 from rest_framework_tracking.mixins import LoggingMixin
 from rest_framework_tracking.models import APIRequestLog
 
-from common.authentication import JWTCookieAuthentication
+from common.authentication import JWTCookieOrHeaderAuthentication
 from common.captcha import generate_captcha
-from common.permissions import IsOwnerAccount, IsAdminUser
+from common.permissions import IsOwnerAccount
 from common.result import Result
 from common.throttling import ImageCaptchaThrottle, EmailCaptchaThrottle
 from common.utils.token import remove_token_caches, serializer_token
@@ -76,7 +76,9 @@ class AuthViewSet(LoggingMixin, ViewSet):
         return Result.OK_200_SUCCESS(msg="验证码发送成功")
 
     @action(
-        methods=["POST"], detail=False, authentication_classes=[JWTCookieAuthentication]
+        methods=["POST"],
+        detail=False,
+        authentication_classes=[JWTCookieOrHeaderAuthentication],
     )
     def logout(self, request, *args, **kwargs):
         refresh_token = request.data.get("refresh")
