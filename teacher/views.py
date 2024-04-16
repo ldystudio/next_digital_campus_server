@@ -37,12 +37,7 @@ class TeacherInformationViewSet(ReadWriteModelViewSetFormatResult):
     serializer_class = TeacherInformationSerializer
     filterset_class = TeacherInformationFilter
     user_fields = ["real_name", "phone", "email", "avatar"]
-
-    def perform_update(self, serializer):
-        self.delete_cache_by_path_prefix(
-            path=f"/api/v1/auth/user/{self.request.user.id}"
-        )
-        super().perform_update(serializer)
+    cache_paths_to_delete = ["auth/user/", "teacher/simple/"]
 
 
 class TeacherWorkViewSet(ModelViewSetFormatResult):
@@ -55,7 +50,7 @@ class TeacherAttendanceViewSet(ModelViewSetFormatResult):
     queryset = Attendance.objects.all()
     serializer_class = TeacherAttendanceSerializer
     filterset_class = TeacherAttendanceFilter
-    cache_paths_to_delete = [None, "/api/v1/teacher/attendance-all/"]
+    cache_paths_to_delete = ["teacher/attendance-all/"]
 
 
 class TeacherSimpleViewSet(ReadOnlyModelViewSetFormatResult):

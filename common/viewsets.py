@@ -45,7 +45,6 @@ class ModelViewSetFormatResult(LoggingMixin, CacheFnMixin, ModelViewSet):
     permission_classes = (IsOwnerOperation,)
     filter_backends = (OrderingFilter, filters.DjangoFilterBackend)
     logging_methods = ["GET", "POST", "PUT", "PATCH", "DELETE"]
-    cache_paths_to_delete = None
 
     def get_queryset(self):
         queryset = super().get_queryset()
@@ -92,7 +91,6 @@ class ReadWriteModelViewSetFormatResult(
     permission_classes = (IsOwnerOperation,)
     filter_backends = (OrderingFilter, filters.DjangoFilterBackend)
     logging_methods = ["GET", "PATCH"]
-    cache_paths_to_delete = None
     user_fields = []
 
     def split_data(self, request_data):

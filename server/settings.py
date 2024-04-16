@@ -210,3 +210,5 @@ SIMPLE_JWT = {
 # CORS跨域配置
 # 允许携带cookie
 CORS_ALLOW_CREDENTIALS = True
+
+API_VERSION = "api/v1/"

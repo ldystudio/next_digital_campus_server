@@ -38,12 +38,7 @@ class StudentInformationViewSet(ReadWriteModelViewSetFormatResult):
     serializer_class = StudentInformationSerializer
     filterset_class = StudentInformationFilter
     user_fields = ["real_name", "phone", "email", "avatar"]
-
-    def perform_update(self, serializer):
-        self.delete_cache_by_path_prefix(
-            path=f"/api/v1/auth/user/{self.request.user.id}"
-        )
-        super().perform_update(serializer)
+    cache_paths_to_delete = ["auth/user/", "student/simple/"]
 
 
 class StudentEnrollmentViewSet(ReadWriteModelViewSetFormatResult):
@@ -51,19 +46,14 @@ class StudentEnrollmentViewSet(ReadWriteModelViewSetFormatResult):
     serializer_class = StudentEnrollmentSerializer
     filterset_class = StudentEnrollmentFilter
     user_fields = ["real_name"]
-
-    def perform_update(self, serializer):
-        self.delete_cache_by_path_prefix(
-            path=f"/api/v1/auth/user/{self.request.user.id}"
-        )
-        super().perform_update(serializer)
+    cache_paths_to_delete = ["auth/user/", "student/simple/"]
 
 
 class StudentAttendanceViewSet(ModelViewSetFormatResult):
     queryset = Attendance.objects.all()
     serializer_class = StudentAttendanceSerializer
     filterset_class = StudentAttendanceFilter
-    cache_paths_to_delete = [None, "/api/v1/student/attendance-all/"]
+    cache_paths_to_delete = ["student/attendance-all/"]
 
 
 class StudentSimpleViewSet(ReadOnlyModelViewSetFormatResult):

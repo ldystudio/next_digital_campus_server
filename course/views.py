@@ -34,10 +34,9 @@ class CourseSettingsViewSet(ModelViewSetFormatResult):
     )
     filterset_class = CourseSettingFilter
     cache_paths_to_delete = [
-        None,
-        "/api/v1/course/schedule/",
-        "/api/v1/course/choose/",
-        "/api/v1/course/simple/",
+        "course/schedule/",
+        "course/choose/",
+        "course/simple/",
     ]
 
     def get_queryset(self):
@@ -110,7 +109,7 @@ class CourseChooseViewSet(ReadWriteModelViewSetFormatResult):
     serializer_class = CourseChooseSerializer
     permission_classes = (IsAuthenticated,)
     filterset_class = CourseSettingFilter
-    cache_paths_to_delete = [None, "/api/v1/course/schedule/"]
+    cache_paths_to_delete = ["course/schedule/"]
 
     def get_queryset(self):
         queryset = super().get_queryset()

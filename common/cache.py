@@ -4,16 +4,20 @@ from django.core.cache import cache
 from rest_framework_extensions.cache.decorators import CacheResponse
 
 from common.utils.decide import is_admin
+from django.conf import settings
+from pydash import map_
 
 
 class CacheFnMixin:
-    def delete_cache_by_path_prefix(self, path: str | list | None):
+    cache_paths_to_delete = [None]
+
+    def delete_cache_by_path_prefix(self, path: str | set | None):
         request = self.request
         if path is None:
             path = request.path
             if request.method != "POST":
                 path = "/".join(path.split("/")[:-2])
-        elif isinstance(path, list):
+        elif isinstance(path, (set, list)):
             for p in path:
                 self.delete_cache_by_path_prefix(p)
         keys = (
@@ -32,16 +36,22 @@ class CacheFnMixin:
     def object_cache_key_func(request, *args, **kwargs):
         return f"{request.path}?request_user={request.user}"
 
+    def get_cache_paths_to_delete(self):
+        return map_(
+            filter(lambda path: isinstance(path, str), self.cache_paths_to_delete),
+            lambda path: f"/{settings.API_VERSION}{path}",
+        )
+
     def perform_create(self, serializer):
-        self.delete_cache_by_path_prefix(self.cache_paths_to_delete)
+        self.delete_cache_by_path_prefix({*self.get_cache_paths_to_delete(), None})
         serializer.save()
 
     def perform_update(self, serializer):
-        self.delete_cache_by_path_prefix(self.cache_paths_to_delete)
+        self.delete_cache_by_path_prefix({*self.get_cache_paths_to_delete(), None})
         serializer.save()
 
     def perform_destroy(self, instance):
-        self.delete_cache_by_path_prefix(self.cache_paths_to_delete)
+        self.delete_cache_by_path_prefix({*self.get_cache_paths_to_delete(), None})
         instance.delete()
 
 
