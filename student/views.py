@@ -10,7 +10,7 @@ from rest_framework_tracking.mixins import LoggingMixin
 from common.cache import CacheFnMixin
 from common.permissions import IsOwnerOperation, IsStudentOrAdminUser
 from common.result import Result
-from common.utils.decide import is_teacher
+from common.utils.decide import is_teacher, is_student
 from common.utils.gain import get_related_field_values_list
 from common.viewsets import (
     ReadWriteModelViewSetFormatResult,
@@ -29,6 +29,7 @@ from .serializers import (
     StudentAttendanceSerializer,
     StudentAttendanceAllTupleSerializer,
     StudentSimpleSerializer,
+    StudentSimpleDetailSerializer,
 )
 
 
@@ -38,7 +39,12 @@ class StudentInformationViewSet(ReadWriteModelViewSetFormatResult):
     serializer_class = StudentInformationSerializer
     filterset_class = StudentInformationFilter
     user_fields = ["real_name", "phone", "email", "avatar"]
-    cache_paths_to_delete = ["auth/user/", "student/simple/"]
+    cache_paths_to_delete = [
+        "auth/user/",
+        "student/enrollment/",
+        "student/simple/",
+        "student/simple-detail/",
+    ]
 
 
 class StudentEnrollmentViewSet(ReadWriteModelViewSetFormatResult):
@@ -46,7 +52,12 @@ class StudentEnrollmentViewSet(ReadWriteModelViewSetFormatResult):
     serializer_class = StudentEnrollmentSerializer
     filterset_class = StudentEnrollmentFilter
     user_fields = ["real_name"]
-    cache_paths_to_delete = ["auth/user/", "student/simple/"]
+    cache_paths_to_delete = [
+        "auth/user/",
+        "student/information/",
+        "student/simple/",
+        "student/simple-detail/",
+    ]
 
 
 class StudentAttendanceViewSet(ModelViewSetFormatResult):
@@ -69,8 +80,29 @@ class StudentSimpleViewSet(ReadOnlyModelViewSetFormatResult):
             return queryset.filter(
                 id__in=get_related_field_values_list(course, "student")
             )
+        elif is_student(self.request):
+            return queryset.filter(user=self.request.user)
 
         return queryset
+
+
+class StudentSimpleDetailViewSet(ReadOnlyModelViewSetFormatResult):
+    queryset = Enrollment.objects.all()
+    serializer_class = StudentSimpleDetailSerializer
+    permission_classes = (IsStudentOrAdminUser, IsOwnerOperation)
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+
+        if is_student(self.request):
+            return queryset.filter(user=self.request.user)
+
+        return queryset
+
+    @cache_response(key_func="list_cache_key_func")
+    def list(self, request, *args, **kwargs):
+        serializer = self.get_serializer(self.get_queryset(), many=True)
+        return Result.OK_200_SUCCESS(data=serializer.data)
 
 
 class StudentTodayAttendanceListView(LoggingMixin, generics.ListAPIView):

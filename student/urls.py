@@ -14,6 +14,9 @@ router.register(
     "attendance", views.StudentAttendanceViewSet, basename="StudentAttendance"
 )
 router.register("simple", views.StudentSimpleViewSet, basename="StudentSimple")
+router.register(
+    "simple-detail", views.StudentSimpleDetailViewSet, basename="StudentSimpleDetail"
+)
 urlpatterns = [
     path(
         "attendance-today/",

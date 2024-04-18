@@ -29,7 +29,7 @@ class StudentInformationFilter(django_filters.FilterSet):
 
 class StudentEnrollmentFilter(django_filters.FilterSet):
     real_name = django_filters.CharFilter(
-        field_name="student__user__real_name", lookup_expr="icontains"
+        field_name="user__real_name", lookup_expr="icontains"
     )
     class_name = django_filters.CharFilter(lookup_expr="icontains")
     address = django_filters.CharFilter(lookup_expr="icontains")
