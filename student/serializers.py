@@ -1,7 +1,6 @@
 from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField, PrimaryKeyRelatedField
 
-from classes.serializers import ClassInformationSerializer
 from common.serializer.filed import MultipleSlugRelatedField
 from common.serializers import ForeignKeyUserSerializer, ForeignKeyUserWithAddSerializer
 from iam.serializers import UserSimpleSerializer
@@ -76,11 +75,15 @@ class StudentSimpleSerializer(ForeignKeyUserSerializer):
         read_only_fields = ("id",)
 
 
-class StudentSimpleDetailSerializer(ForeignKeyUserSerializer):
+class StudentSimpleDetailSerializer(serializers.ModelSerializer):
     id = PrimaryKeyRelatedField(
         source="user.student", read_only=True, pk_field=serializers.CharField()
     )
-    user = UserSimpleSerializer(read_only=True)
+    user = MultipleSlugRelatedField(
+        read_only=True,
+        slug_fields=["real_name", "email", "avatar", "signature"],
+        pk=None,
+    )
     class_name = SlugRelatedField(
         source="classes", slug_field="class_name", read_only=True
     )
@@ -88,6 +91,7 @@ class StudentSimpleDetailSerializer(ForeignKeyUserSerializer):
     def to_representation(self, instance):
         ret = super().to_representation(instance)
         ret["enrollment_status"] = instance.get_enrollment_status_display()
+        ret.update(ret.pop("user"))
         return ret
 
     class Meta:

@@ -1,7 +1,10 @@
-from snowflake.client import get_guid
+from datetime import datetime
+
 from django.core.cache import cache
-from rest_framework import serializers
 from django.db import transaction
+from rest_framework import serializers
+from snowflake.client import get_guid
+
 from iam.models import User
 from student import models as student_models
 from teacher import models as teacher_models
@@ -47,28 +50,50 @@ class RegisterUserSerializer(serializers.Serializer):
         # 验证码验证成功后，删除缓存
         cache.expire(trace_id, timeout=0, version="EmailCaptcha")
 
-        user = User.objects.create_user(
-            id=get_guid(),
-            username=validated_data["username"],
-            password=validated_data["password"],
-            email=validated_data["email"],
-            user_role=validated_data["roleType"],
-            avatar=validated_data["avatar"],
-        )
+        # 创建用户
+        role_type = validated_data["roleType"]
+        if role_type == "student":
+            today = datetime.now().date()
+            four_years_later_date = datetime(today.year + 4, 6, 30).date()
 
-        user_role = user.user_role
-        if user_role == "student":
-            # 在事务中执行创建操作，确保两条数据都创建成功
+            # 在事务中执行创建操作，确保多条数据都创建成功
             with transaction.atomic():
                 try:
+                    user = User.objects.create_user(
+                        id=get_guid(),
+                        username=validated_data["username"],
+                        password=validated_data["password"],
+                        email=validated_data["email"],
+                        user_role=validated_data["roleType"],
+                        avatar=validated_data["avatar"],
+                    )
                     student_models.Information.objects.create(user=user)
-                    student_models.Enrollment.objects.create(user=user)
+                    student_models.Enrollment.objects.create(
+                        user=user,
+                        date_of_admission=today.strftime("%Y-%m-%d"),
+                        date_of_graduation=four_years_later_date.strftime("%Y-%m-%d"),
+                    )
                 except Exception as e:
                     # 如果有任何异常发生，回滚事务并返回错误响应
                     transaction.set_rollback(True)
                     raise serializers.ValidationError(e)
-        if user_role == "teacher":
-            teacher_models.Information.objects.create(user=user)
+
+        if role_type == "teacher":
+            with transaction.atomic():
+                try:
+                    user = User.objects.create_user(
+                        id=get_guid(),
+                        username=validated_data["username"],
+                        password=validated_data["password"],
+                        email=validated_data["email"],
+                        user_role=validated_data["roleType"],
+                        avatar=validated_data["avatar"],
+                    )
+                    teacher_models.Information.objects.create(user=user)
+                except Exception as e:
+                    transaction.set_rollback(True)
+                    raise serializers.ValidationError(e)
+
         return user
 
     def update(self, instance, validated_data):

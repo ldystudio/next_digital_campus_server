@@ -62,5 +62,7 @@ class MultipleSlugRelatedField(RelatedField):
             self.fail("invalid")
 
     def to_representation(self, value):
-        data = {self.pk: self.pk_field.to_representation(value.pk)}
-        return data | {field: getattr(value, field) for field in self.slug_fields}
+        ret = {field: getattr(value, field) for field in self.slug_fields}
+        if self.pk:
+            return {self.pk: self.pk_field.to_representation(value.pk)} | ret
+        return ret

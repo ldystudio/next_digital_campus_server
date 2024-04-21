@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from rest_framework.relations import SlugRelatedField
 from snowflake.client import get_guid
 
 from common.serializer.filed import MultipleSlugRelatedField
@@ -32,11 +33,6 @@ class ScoreInformationSerializer(serializers.ModelSerializer):
         representation["student"] = self.get_student(instance)
         return representation
 
-    class Meta:
-        model = Score
-        exclude = ("date_joined", "date_updated")
-        read_only_fields = ("id", "date_joined", "date_updated")
-
     def validate(self, attrs):
         request = self.context["request"]
         if request.method == "POST":
@@ -60,3 +56,19 @@ class ScoreInformationSerializer(serializers.ModelSerializer):
 
         attrs["entered_by_id"] = request.user.id
         return attrs
+
+    class Meta:
+        model = Score
+        exclude = ("date_joined", "date_updated")
+        read_only_fields = ("id", "date_joined", "date_updated")
+
+
+class ScoreQuerySerializer(serializers.ModelSerializer):
+    course_name = SlugRelatedField(
+        source="course", read_only=True, slug_field="course_name"
+    )
+
+    class Meta:
+        model = Score
+        fields = ("course_name", "exam_date", "exam_type", "exam_score")
+        read_only_fields = ("id", "date_joined", "date_updated")

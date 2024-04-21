@@ -14,7 +14,9 @@ class ScoreInformationFilter(django_filters.FilterSet):
     entered_by = django_filters.CharFilter(
         field_name="entered_by__real_name", lookup_expr="icontains"
     )
-
+    year = django_filters.CharFilter(
+        field_name="course__start_date", lookup_expr="year"
+    )
     exam_type = django_filters.CharFilter(method="filter_exam_type")
 
     def filter_exam_type(self, queryset, name, value):
@@ -23,4 +25,12 @@ class ScoreInformationFilter(django_filters.FilterSet):
 
     class Meta:
         model = Information
-        fields = ("id", "student", "course", "exam_date", "entered_by", "exam_type")
+        fields = (
+            "id",
+            "student",
+            "course",
+            "exam_date",
+            "entered_by",
+            "exam_type",
+            "year",
+        )

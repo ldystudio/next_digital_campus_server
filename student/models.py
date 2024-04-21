@@ -61,6 +61,8 @@ class Enrollment(models.Model):
         on_delete=models.CASCADE,
         related_name="student_enrollment",
         db_comment="所属班级",
+        null=True,
+        blank=True,
     )
 
     def __str__(self):
