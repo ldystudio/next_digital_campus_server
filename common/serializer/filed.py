@@ -33,7 +33,9 @@ class MultipleSlugRelatedField(RelatedField):
         "invalid": _("无效的输入"),
     }
 
-    def __init__(self, slug_fields=None, pk="id", pk_field=CharField(), **kwargs):
+    def __init__(
+        self, slug_fields: list = None, pk="id", pk_field=CharField(), **kwargs
+    ):
         assert slug_fields is not None, "The `slug_fields` argument is required."
         self.slug_fields = slug_fields
         self.pk = pk

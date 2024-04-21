@@ -40,9 +40,12 @@ class ScoreInformationSerializer(serializers.ModelSerializer):
             course = attrs.get("course")
             exam_type = request.data.get("exam_type", 1)
 
-            if Score.objects.filter(
-                student=student, course=course, exam_type=exam_type
-            ).exists():
+            if (
+                exam_type != 1
+                and Score.objects.filter(
+                    student=student, course=course, exam_type=exam_type
+                ).exists()
+            ):
                 raise serializers.ValidationError(
                     f"学生「{student.user.real_name}」已有《{course.course_name}》课程的「{Score.exam_type_choices[exam_type - 1][1]}」的成绩"
                 )
@@ -72,3 +75,16 @@ class ScoreQuerySerializer(serializers.ModelSerializer):
         model = Score
         fields = ("course_name", "exam_date", "exam_type", "exam_score")
         read_only_fields = ("id", "date_joined", "date_updated")
+
+
+class ScoreDataSerializer(serializers.ModelSerializer):
+    course = MultipleSlugRelatedField(read_only=True, slug_fields=["course_name"])
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        representation["course"] = "-".join(representation.pop("course").values())
+        return representation
+
+    class Meta:
+        model = Score
+        fields = ("course", "exam_date", "exam_score")

@@ -53,3 +53,11 @@ class IsStudentOrAdminUser(IsAuthenticated):
             "admin",
             "student",
         ]
+
+
+class IsStudent(IsAuthenticated):
+    def has_permission(self, request, view):
+        return (
+            super().has_permission(request, view)
+            and request.user.user_role == "student"
+        )
