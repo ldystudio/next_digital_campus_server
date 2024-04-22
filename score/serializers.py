@@ -88,3 +88,22 @@ class ScoreDataSerializer(serializers.ModelSerializer):
     class Meta:
         model = Score
         fields = ("course", "exam_date", "exam_score")
+
+
+class ScoreAIAdviseSerializer(serializers.ModelSerializer):
+    course_name = SlugRelatedField(
+        source="course", read_only=True, slug_field="course_name"
+    )
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        return {
+            "课程名称": representation["course_name"],
+            "考试类型": instance.get_exam_type_display(),
+            "考试日期": representation["exam_date"],
+            "考试成绩": representation["exam_score"],
+        }
+
+    class Meta:
+        model = Score
+        fields = ("course_name", "exam_type", "exam_date", "exam_score")

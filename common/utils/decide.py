@@ -1,3 +1,6 @@
+from rest_framework.exceptions import ValidationError
+
+
 def is_request_mapped_to_view(request, view_name: str | list):
     """
     检查当前请求是否映射到指定的视图名称。
@@ -28,3 +31,11 @@ def is_student(request):
 
 def is_admin(request):
     return request.user.is_authenticated and request.user.user_role == "admin"
+
+
+def validation_year(year):
+    if year is not None and (
+        not year.isdigit() or int(year) < 2000 or int(year) > 9999
+    ):
+        raise ValidationError("年份格式不正确。")
+    return year

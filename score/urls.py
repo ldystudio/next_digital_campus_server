@@ -14,4 +14,9 @@ urlpatterns = [
         views.PeacetimeScoreListView.as_view(),
         name="PeacetimeScore",
     ),
+    path(
+        "ai-advise/",
+        views.ScoreAIAdviseView.as_view(),
+        name="ScoreAIAdvise",
+    ),
 ] + router.urls
