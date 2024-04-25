@@ -9,8 +9,12 @@ from rest_framework.exceptions import Throttled
 from rest_framework.utils.serializer_helpers import ReturnDict
 from rest_framework.views import exception_handler as drf_exception_handler
 from rest_framework_simplejwt.exceptions import TokenError
-
+import rest_framework
 from common.result import Result
+from common.console import console
+
+
+# from rich import print
 
 
 def exception_handler(exc, context):
@@ -67,7 +71,9 @@ def exception_handler(exc, context):
         response = handle_validation_errors(exc)
 
     # print(traceback.format_exception_only(exc.__class__, exc))
-    print(traceback.format_exc())
+    # print(traceback.format_exc())
+    console.print_exception(width=150, show_locals=True, suppress=[rest_framework])
+    console.rule(title="[bold red]Traceback End", style="red")
     return response
 
 

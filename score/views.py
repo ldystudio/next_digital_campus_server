@@ -88,7 +88,7 @@ class ScoreAIAdviseView(LoggingMixin, CacheFnMixin, generics.ListAPIView):
     permission_classes = (IsStudent,)
     logging_methods = ["GET"]
 
-    # @cache_response(key_func="list_cache_key_func", timeout=60 * 60 * 10)
+    @cache_response(key_func="list_cache_key_func", timeout=60 * 60 * 10)
     def list(self, request, *args, **kwargs):
         year = validation_year(request.query_params.get("year"))
 
@@ -107,7 +107,8 @@ class ScoreAIAdviseView(LoggingMixin, CacheFnMixin, generics.ListAPIView):
             messages=[
                 {
                     "role": "user",
-                    "content": f"作为一个 AI 学习助手，你的任务是根据学生的成绩提出学业建议，并用markdown格式进行展示，现在这名学生的学习成绩如下：```{serializer.data}```",
+                    "content": f"""作为一个 AI 学习助手，你的任务是根据学生的成绩提出学业建议，并用<p>、<ol>、<li>、<strong>、<em>等标签包裹建议内容，
+                    以便更好的呈现给学生。现在这名学生的学习成绩如下：```{serializer.data}```""",
                 }
             ],
         )

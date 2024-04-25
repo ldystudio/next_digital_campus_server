@@ -132,6 +132,25 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 AUTH_USER_MODEL = "iam.User"
 AUTHENTICATION_BACKENDS = ["common.authentication.LoginModelBackend"]
 
+# 查看Sql语句
+# LOGGING = {
+#     "version": 1,
+#     "disable_existing_loggers": False,
+#     "handlers": {
+#         "console": {
+#             "level": "DEBUG",
+#             "class": "logging.StreamHandler",
+#         },
+#     },
+#     "loggers": {
+#         "django.db.backends": {
+#             "handlers": ["console"],
+#             "propagate": True,
+#             "level": "DEBUG",
+#         },
+#     },
+# }
+
 # DRF全局配置
 REST_FRAMEWORK = {
     # 认证
