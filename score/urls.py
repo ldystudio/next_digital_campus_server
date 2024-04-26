@@ -19,4 +19,9 @@ urlpatterns = [
         views.ScoreAIAdviseView.as_view(),
         name="ScoreAIAdvise",
     ),
+    path(
+        "statistics/",
+        views.ScoreStatisticsView.as_view(),
+        name="ScoreStatistics",
+    ),
 ] + router.urls

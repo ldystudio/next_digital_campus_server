@@ -107,3 +107,9 @@ class ScoreAIAdviseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Score
         fields = ("course_name", "exam_type", "exam_date", "exam_score")
+
+
+class ScoreSimpleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Score
+        fields = ("exam_score",)

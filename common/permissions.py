@@ -2,7 +2,6 @@ from rest_framework.permissions import BasePermission, IsAuthenticated
 
 from common.utils.decide import is_request_mapped_to_view, is_admin, is_teacher
 from common.utils.gain import get_related_field_values_list
-from teacher.models import Information as TeacherInformation
 
 
 class IsOwnerAccount(BasePermission):

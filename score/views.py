@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.db.models import Max, Avg, Min
 from pydash import map_, group_by
 from rest_framework import generics
 from rest_framework_extensions.cache.decorators import cache_response
@@ -14,16 +15,11 @@ from common.permissions import (
     IsStudent,
 )
 from common.result import Result
-from common.utils.decide import is_admin, validation_year
+from common.utils.decide import is_admin, validation_year, is_teacher
 from common.viewsets import ModelViewSetFormatResult, ReadOnlyModelViewSetFormatResult
 from .filters import ScoreInformationFilter
 from .models import Information
-from .serializers import (
-    ScoreInformationSerializer,
-    ScoreQuerySerializer,
-    ScoreDataSerializer,
-    ScoreAIAdviseSerializer,
-)
+from .serializers import *
 
 
 class ScoreInformationViewSet(ModelViewSetFormatResult):
@@ -31,7 +27,7 @@ class ScoreInformationViewSet(ModelViewSetFormatResult):
     serializer_class = ScoreInformationSerializer
     filterset_class = ScoreInformationFilter
     permission_classes = (IsTeacherOrAdminUser, IsOwnerOperation)
-    cache_paths_to_delete = ["score/query/", "score/peacetime/"]
+    cache_paths_to_delete = ["score/"]
 
     def get_queryset(self):
         queryset = self.queryset
@@ -114,3 +110,42 @@ class ScoreAIAdviseView(LoggingMixin, CacheFnMixin, generics.ListAPIView):
         )
 
         return Result.OK_200_SUCCESS(data=response.choices[0].message.content)
+
+
+class ScoreStatisticsView(LoggingMixin, CacheFnMixin, generics.ListAPIView):
+    queryset = Information.objects.values("exam_score")
+    logging_methods = ["GET"]
+
+    # @cache_response(key_func="list_cache_key_func")
+    def list(self, request, *args, **kwargs):
+        if is_admin(request):
+            queryset = self.get_queryset().none()
+        elif is_teacher(request):
+            queryset = self.get_queryset().filter(course__teacher=request.user.teacher)
+        else:
+            queryset = self.get_queryset().filter(student=request.user.student)
+
+        max_score = queryset.aggregate(Max("exam_score"))["exam_score__max"]
+        avg_score = queryset.aggregate(Avg("exam_score"))["exam_score__avg"]
+        min_score = queryset.aggregate(Min("exam_score"))["exam_score__min"]
+
+        excellent = queryset.filter(exam_score__gte=90).count()
+        good = queryset.filter(exam_score__gte=80, exam_score__lt=90).count()
+        pass_ = queryset.filter(exam_score__gte=60, exam_score__lt=80).count()
+        poor = queryset.filter(exam_score__lt=60).count()
+
+        pie_chart = [
+            {"name": "优秀", "value": excellent},
+            {"name": "良好", "value": good},
+            {"name": "及格", "value": pass_},
+            {"name": "不及格", "value": poor},
+        ]
+
+        return Result.OK_200_SUCCESS(
+            data={
+                "max": max_score,
+                "avg": avg_score,
+                "min": min_score,
+                "pie_chart": pie_chart,
+            }
+        )
