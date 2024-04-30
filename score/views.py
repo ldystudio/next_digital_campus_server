@@ -1,12 +1,16 @@
+from collections import Counter
+
+import jieba
 from django.conf import settings
 from django.db.models import Max, Avg, Min, Q
 from django.utils import timezone
-from pydash import map_, group_by
+from pydash import group_by, map_, map_values
 from rest_framework import generics
 from rest_framework_extensions.cache.decorators import cache_response
 from rest_framework_tracking.mixins import LoggingMixin
 from zhipuai import ZhipuAI
 
+from classes.models import Information as Classes
 from common.cache import CacheFnMixin
 from common.pagination import UnlimitedPagination
 from common.permissions import (
@@ -118,7 +122,7 @@ class ScoreStatisticsView(LoggingMixin, CacheFnMixin, generics.ListAPIView):
     queryset = Information.objects.all().distinct()
     logging_methods = ["GET"]
 
-    # @cache_response(key_func="list_cache_key_func")
+    @cache_response(key_func="list_cache_key_func")
     def list(self, request, *args, **kwargs):
         if is_admin(request):
             queryset = self.get_queryset().none()
@@ -127,14 +131,12 @@ class ScoreStatisticsView(LoggingMixin, CacheFnMixin, generics.ListAPIView):
                 Q(course__classes__in=request.user.teacher.classes.all())
                 | Q(course__teacher=request.user.teacher)
             )
-
         else:
             queryset = self.get_queryset().filter(student=request.user.student)
-
+        # ================================================
         max_score = queryset.aggregate(Max("exam_score"))["exam_score__max"]
         avg_score = queryset.aggregate(Avg("exam_score"))["exam_score__avg"]
         min_score = queryset.aggregate(Min("exam_score"))["exam_score__min"]
-
         # ================================================
         excellent = queryset.filter(exam_score__gte=90).count()
         good = queryset.filter(exam_score__gte=80, exam_score__lt=90).count()
@@ -156,7 +158,6 @@ class ScoreStatisticsView(LoggingMixin, CacheFnMixin, generics.ListAPIView):
             )
         else:
             years = [(now := timezone.now().year) - 4, now]
-
         years_range = list(range(years[0], years[-1] + 1))
 
         qs = queryset.filter(course__start_date__year__in=years_range, exam_type=3)
@@ -173,12 +174,58 @@ class ScoreStatisticsView(LoggingMixin, CacheFnMixin, generics.ListAPIView):
             res[name] = _data
 
         bar_chart = {"years": years_range, "names": names, "values": res}
+        # ================================================
+        course_names = Course.objects.filter(
+            Q(classes=self.request.user.student_enrollment.classes)
+            | Q(student=self.request.user.student)
+        ).values_list("course_name", flat=True)
+
+        word_count = Counter()
+        for word in course_names:
+            seg_list = jieba.cut(word)
+            word_count.update(seg_list)
+
+        word_cloud = [
+            {"name": k, "value": v} for k, v in word_count.items() if len(k) > 1
+        ]
+        # ================================================
+        # 查找本学生在期末考试的本班级成绩排名
+        scores = queryset.filter(exam_type=3).order_by("-exam_score")
+        best_course = scores.first().course.course_name
+        worst_course = scores.last().course.course_name
+        class_scores = Information.objects.filter(
+            exam_type=3,
+            course__classes=(
+                student_classes := self.request.user.student_enrollment.classes
+            ),
+        ).values("student__id", "exam_score")
+        total_scores = map_values(
+            group_by(class_scores, "student__id"),
+            lambda x: sum(item["exam_score"] for item in x),
+        )
+        sorted_scores = sorted(total_scores.items(), key=lambda x: x[1], reverse=True)
+        class_rank = (
+            sorted_scores.index(
+                (student_id := request.user.student.id, total_scores[student_id])
+            )
+            + 1
+        )
+        total_students = (
+            Classes.objects.filter(id=student_classes.id)
+            .values_list("student_enrollment", flat=True)
+            .count()
+        )
+
         return Result.OK_200_SUCCESS(
             data={
                 "max": max_score,
                 "avg": avg_score,
                 "min": min_score,
+                "best_course": best_course,
+                "worst_course": worst_course,
+                "class_rank": f"{class_rank} / {total_students}",
                 "pie_chart": pie_chart,
                 "bar_chart": bar_chart,
+                "word_cloud": word_cloud,
             }
         )
