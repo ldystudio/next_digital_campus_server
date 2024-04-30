@@ -4,7 +4,7 @@ from snowflake.client import get_guid
 
 from common.serializer.filed import MultipleSlugRelatedField
 from course.models import Setting as Course
-from student.models import Information as Student
+from student.models import Information as Student, Enrollment as StudentEnrollment
 from .models import Information as Score
 
 
@@ -50,7 +50,12 @@ class ScoreInformationSerializer(serializers.ModelSerializer):
                     f"学生「{student.user.real_name}」已有《{course.course_name}》课程的「{Score.exam_type_choices[exam_type - 1][1]}」的成绩"
                 )
 
-            if not Course.objects.filter(id=course.id, student=student).exists():
+            if (
+                not Course.objects.filter(id=course.id, student=student).exists()
+                and not StudentEnrollment.objects.filter(
+                    user__student=student, classes__in=course.classes.all()
+                ).exists()
+            ):
                 raise serializers.ValidationError(
                     f"学生「{student.user.real_name}」未参加《{course.course_name}》课程"
                 )

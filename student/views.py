@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.utils import timezone
 from pydash import map_
 from rest_framework import generics
@@ -78,8 +78,12 @@ class StudentSimpleViewSet(ReadOnlyModelViewSetFormatResult):
         if is_teacher(self.request):
             course = self.request.user.teacher.course.all()
             return queryset.filter(
-                id__in=get_related_field_values_list(course, "student")
+                Q(id__in=get_related_field_values_list(course, "student"))
+                | Q(
+                    user__student_enrollment__classes__in=self.request.user.teacher.classes.all()
+                )
             )
+
         elif is_student(self.request):
             return queryset.filter(user=self.request.user)
 

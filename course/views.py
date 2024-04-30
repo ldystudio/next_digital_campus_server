@@ -28,16 +28,9 @@ from .serializers import (
 class CourseSettingsViewSet(ModelViewSetFormatResult):
     queryset = Setting.objects.all().distinct()
     serializer_class = CourseSettingSerializer
-    permission_classes = (
-        IsTeacherOrAdminUser,
-        IsOwnerOperation,
-    )
+    permission_classes = (IsTeacherOrAdminUser, IsOwnerOperation)
     filterset_class = CourseSettingFilter
-    cache_paths_to_delete = [
-        "course/schedule/",
-        "course/choose/",
-        "course/simple/",
-    ]
+    cache_paths_to_delete = ["course/schedule/", "course/choose/", "course/simple/"]
 
     def get_queryset(self):
         queryset = self.queryset
@@ -141,6 +134,8 @@ class CourseSimpleViewSet(ReadOnlyModelViewSetFormatResult):
         queryset = super().get_queryset()
 
         if is_teacher(self.request):
-            return queryset.filter(teacher=self.request.user.teacher)
-
+            return queryset.filter(
+                Q(teacher=self.request.user.teacher)
+                | Q(classes__in=self.request.user.teacher.classes.all())
+            )
         return queryset

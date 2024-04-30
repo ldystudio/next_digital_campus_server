@@ -2,6 +2,7 @@ from rest_framework.permissions import BasePermission, IsAuthenticated
 
 from common.utils.decide import is_request_mapped_to_view, is_admin, is_teacher
 from common.utils.gain import get_related_field_values_list
+from course.models import Setting as Course
 
 
 class IsOwnerAccount(BasePermission):
@@ -24,9 +25,14 @@ class IsOwnerOperation(IsAuthenticated):
 
             if is_request_mapped_to_view(request, "CourseSettingsViewSet"):
                 return teacher.id in get_related_field_values_list(obj.teacher)
-
             elif is_request_mapped_to_view(request, "ScoreInformationViewSet"):
-                return obj.course_id in get_related_field_values_list(teacher.course)
+                return obj.course_id in get_related_field_values_list(
+                    teacher.course
+                ).union(
+                    get_related_field_values_list(
+                        Course.objects.filter(classes__in=teacher.classes.all())
+                    )
+                )
 
         return obj.user.id == request.user.id
 
