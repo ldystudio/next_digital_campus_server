@@ -125,7 +125,7 @@ class ScoreStatisticsView(LoggingMixin, CacheFnMixin, generics.ListAPIView):
     @cache_response(key_func="list_cache_key_func")
     def list(self, request, *args, **kwargs):
         if is_admin(request):
-            queryset = self.get_queryset().none()
+            return Result.OK_200_SUCCESS(data=None)
         elif is_teacher(request):
             queryset = self.get_queryset().filter(
                 Q(course__classes__in=request.user.teacher.classes.all())
@@ -161,7 +161,7 @@ class ScoreStatisticsView(LoggingMixin, CacheFnMixin, generics.ListAPIView):
         years_range = list(range(years[0], years[-1] + 1))
 
         qs = queryset.filter(course__start_date__year__in=years_range, exam_type=3)
-        names = qs.values_list("course__course_name", flat=True)
+        names = set(qs.values_list("course__course_name", flat=True))
 
         res = {}
         for name in names:
@@ -170,15 +170,26 @@ class ScoreStatisticsView(LoggingMixin, CacheFnMixin, generics.ListAPIView):
                 score = qs.filter(
                     course__start_date__year=year, course__course_name=name
                 ).values_list("exam_score", flat=True)
-                _data.append(score.first() if len(score) > 0 else None)
+                if is_student(request):
+                    _data.append(score.first() if len(score) > 0 else None)
+                else:
+                    _data.append(
+                        round(sum(score) / len(score), 2) if len(score) > 0 else None
+                    )
             res[name] = _data
 
         bar_chart = {"years": years_range, "names": names, "values": res}
         # ================================================
-        course_names = Course.objects.filter(
-            Q(classes=self.request.user.student_enrollment.classes)
-            | Q(student=self.request.user.student)
-        ).values_list("course_name", flat=True)
+        if is_student(request):
+            course_names = Course.objects.filter(
+                Q(classes=self.request.user.student_enrollment.classes)
+                | Q(student=self.request.user.student)
+            ).values_list("course_name", flat=True)
+        else:
+            course_names = Course.objects.filter(
+                Q(classes__in=self.request.user.teacher.classes.all())
+                | Q(teacher=request.user.teacher)
+            ).values_list("course_name", flat=True)
 
         word_count = Counter()
         for word in course_names:
@@ -190,31 +201,50 @@ class ScoreStatisticsView(LoggingMixin, CacheFnMixin, generics.ListAPIView):
         ]
         # ================================================
         # 查找本学生在期末考试的本班级成绩排名
-        scores = queryset.filter(exam_type=3).order_by("-exam_score")
-        best_course = scores.first().course.course_name
-        worst_course = scores.last().course.course_name
-        class_scores = Information.objects.filter(
-            exam_type=3,
-            course__classes=(
-                student_classes := self.request.user.student_enrollment.classes
-            ),
-        ).values("student__id", "exam_score")
-        total_scores = map_values(
-            group_by(class_scores, "student__id"),
-            lambda x: sum(item["exam_score"] for item in x),
-        )
-        sorted_scores = sorted(total_scores.items(), key=lambda x: x[1], reverse=True)
-        class_rank = (
-            sorted_scores.index(
-                (student_id := request.user.student.id, total_scores[student_id])
+        if is_student(request):
+            scores = queryset.filter(exam_type=3).order_by("-exam_score")
+            best_course = scores.first().course.course_name
+            worst_course = scores.last().course.course_name
+            class_scores = Information.objects.filter(
+                exam_type=3,
+                course__classes=(
+                    student_classes := self.request.user.student_enrollment.classes
+                ),
+            ).values("student__id", "exam_score")
+            total_scores = map_values(
+                group_by(class_scores, "student__id"),
+                lambda x: sum(item["exam_score"] for item in x),
             )
-            + 1
-        )
-        total_students = (
-            Classes.objects.filter(id=student_classes.id)
-            .values_list("student_enrollment", flat=True)
-            .count()
-        )
+            sorted_scores = sorted(
+                total_scores.items(), key=lambda x: x[1], reverse=True
+            )
+            rank = (
+                sorted_scores.index(
+                    (student_id := request.user.student.id, total_scores[student_id])
+                )
+                + 1
+            )
+            total_students = (
+                Classes.objects.filter(id=student_classes.id)
+                .values_list("student_enrollment", flat=True)
+                .count()
+            )
+            class_rank = f"{rank} / {total_students}"
+        else:
+            class_scores = Information.objects.filter(
+                exam_type=3,
+                course__classes__in=(self.request.user.teacher.classes.all()),
+            ).values("course__course_name", "exam_score")
+            total_scores = map_values(
+                group_by(class_scores, "course__course_name"),
+                lambda x: sum(item["exam_score"] for item in x),
+            )
+            sorted_scores = sorted(
+                total_scores.items(), key=lambda x: x[1], reverse=True
+            )
+            best_course = sorted_scores[0][0]
+            worst_course = sorted_scores[-1][0]
+            class_rank = "暂无数据"
 
         return Result.OK_200_SUCCESS(
             data={
@@ -223,7 +253,7 @@ class ScoreStatisticsView(LoggingMixin, CacheFnMixin, generics.ListAPIView):
                 "min": min_score,
                 "best_course": best_course,
                 "worst_course": worst_course,
-                "class_rank": f"{class_rank} / {total_students}",
+                "class_rank": class_rank,
                 "pie_chart": pie_chart,
                 "bar_chart": bar_chart,
                 "word_cloud": word_cloud,
