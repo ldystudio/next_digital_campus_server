@@ -132,7 +132,9 @@ class DashboardAnalyticsView(LoggingMixin, CacheFnMixin, generics.ListAPIView):
                             path__in=[
                                 f"/{settings.API_VERSION}auth/email_captcha/",
                                 f"/{settings.API_VERSION}score/ai-advise/",
+                                f"/{settings.API_VERSION}score/statistics/",
                                 f"/{settings.API_VERSION}dashboard/analytics/",
+                                f"/{settings.API_VERSION}auth/login/",
                             ]
                         ),
                         errors__isnull=True,
