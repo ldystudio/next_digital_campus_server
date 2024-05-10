@@ -9,16 +9,16 @@ https://docs.djangoproject.com/en/4.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
-
+from configparser import ConfigParser
 from datetime import timedelta
 from pathlib import Path
 
 from generate_rsa_keys import verifying_key, signing_key
 
-try:
-    from .local_settings import *
-except ImportError:
-    raise ImportError("local_settings.py文件未找到或导入失败。请检查Python路径设置确保文件存在。")
+CONFIG = ConfigParser()
+CONFIG.read(".env.cfg")
+if not CONFIG.has_section("common"):
+    raise ImportError(".env.cfg文件未找到或导入失败。请检查Python路径设置确保文件存在。")
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -26,25 +26,31 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# SECURITY WARNING: keep the secret key used in production secret!
+SECRET_KEY = "django-insecure-dm4rln@ghg^7o+y5huvsu!(9a3oqy7en=2xg+!13-4_s3b04xj"
 
-ALLOWED_HOSTS = ["*"]
+# SECURITY WARNING: don't run with debug turned on in production!
+DEBUG = CONFIG.getboolean("common", "DEBUG")
+
+ENV = "development" if DEBUG else "production"
+
+ALLOWED_HOSTS = [".localhost", "[::1]", "127.0.0.1", "192.168.1.215", "203.195.168.162"]
 
 # Application definition
-
 INSTALLED_APPS = [
+    "daphne",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     # 'django.contrib.sessions',
     # 'django.contrib.messages',
-    # 'django.contrib.staticfiles',
     "django.contrib.staticfiles",
     "rest_framework",
     "rest_framework_simplejwt",
     "rest_framework_tracking",
     "django_filters",
     "corsheaders",
+    "channels",
+    "channels_auth_token_middlewares",
     "common.apps.CommonConfig",
     "iam.apps.IamConfig",
     "student.apps.StudentConfig",
@@ -52,6 +58,7 @@ INSTALLED_APPS = [
     "course.apps.CourseConfig",
     "classes.apps.ClassConfig",
     "score.apps.ScoreConfig",
+    "chat.apps.ChartConfig",
 ]
 
 MIDDLEWARE = [
@@ -79,29 +86,24 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
-            ],
+            ]
         },
-    },
+    }
 ]
 
 WSGI_APPLICATION = "server.wsgi.application"
+ASGI_APPLICATION = "server.asgi.application"
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
     {
-        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"
     },
-    {
-        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
-    },
+    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
+    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
+    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 
 # Internationalization
@@ -151,6 +153,71 @@ AUTHENTICATION_BACKENDS = ["common.authentication.LoginModelBackend"]
 #     },
 # }
 
+# Database
+# https://docs.djangoproject.com/zh-hans/4.2/ref/settings/#databases
+DATABASES = {
+    "default": {
+        # 数据库引擎
+        "ENGINE": "django.db.backends.mysql",
+        # 数据库名
+        "NAME": "next_digital_campus",
+        # 用户名
+        "USER": "root",
+        # 密码
+        "PASSWORD": CONFIG.get(ENV, "DATABASES_PWD"),
+        # HOST
+        "HOST": CONFIG.get(ENV, "HOST"),
+        # 端口
+        "PORT": "3306",
+    }
+}
+
+# Cache
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        # Redis连接
+        "LOCATION": f"redis://{CONFIG.get(ENV, 'HOST')}:6379/0",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            # 配置连接池
+            "CONNECTION_POOL_KWARGS": {"max_connections": 100},
+            "PASSWORD": CONFIG.get(ENV, "CACHES_PWD"),
+            # 压缩方法
+            # "COMPRESSOR": "django_redis.compressors.zlib.ZlibCompressor",
+            # 忽略异常
+            "IGNORE_EXCEPTIONS": True,
+        },
+    }
+}
+
+# WebSocket
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [
+                f"redis://:{CONFIG.get(ENV, 'CACHES_PWD')}@{CONFIG.get(ENV, 'HOST')}:6379/0"
+            ],
+            "symmetric_encryption_keys": [SECRET_KEY],
+        },
+    }
+}
+
+# EMAIL
+# https://docs.djangoproject.com/zh-hans/4.2/ref/settings/#std-setting-EMAIL_BACKEND
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+# 邮箱SMTP服务器地址
+EMAIL_HOST = "smtp.qq.com"
+# 邮箱SMTP服务端口
+EMAIL_PORT = 25
+# 发送邮件的邮箱
+EMAIL_HOST_USER = CONFIG.get("common", "EMAIL_HOST_USER")
+# 发送邮件的邮箱授权码
+EMAIL_HOST_PASSWORD = CONFIG.get("common", "EMAIL_HOST_PASSWORD")
+# 收到代码错误通知的所有人员的列表
+ADMINS = [("ChangQing", "1187551003@qq.com")]
+
 # DRF全局配置
 REST_FRAMEWORK = {
     # 认证
@@ -199,9 +266,7 @@ REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "rest_framework.schemas.coreapi.AutoSchema",
 }
 
-REST_FRAMEWORK_EXTENSIONS = {
-    "DEFAULT_CACHE_RESPONSE_TIMEOUT": 60 * 15,
-}
+REST_FRAMEWORK_EXTENSIONS = {"DEFAULT_CACHE_RESPONSE_TIMEOUT": 60 * 15}
 
 SIMPLE_JWT = {
     # accessToken有效期
@@ -227,7 +292,18 @@ SIMPLE_JWT = {
 }
 
 # CORS跨域配置
+CORS_ORIGIN_WHITELIST = (
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "http://192.168.1.215:3000",
+    "http://203.195.168.162:3000",
+    "http://203.195.168.162",
+    "https://next-digital-campus.vercel.app",
+)
 # 允许携带cookie
 CORS_ALLOW_CREDENTIALS = True
 
 API_VERSION = "api/v1/"
+
+# 智谱清言配置
+ZHI_PU_API_KEY = CONFIG.get("common", "ZHI_PU_API_KEY")

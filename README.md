@@ -48,9 +48,9 @@ python -m venv venv
 # 安装依赖
 pip install -r requirements.txt
 
-# 数据迁移
-mv server/local_settings.py.example server/local_settings.py
 # 填写配置
+mv .env.cfg.example .env.cfg
+# 数据迁移
 python manage.py makemigrations
 python manage.py migrate
 

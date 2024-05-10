@@ -17,7 +17,7 @@ db.sqlite3
 #/staticfiles/
 
 # Ignore development settings file
-/.env
+/.env.cfg
 
 # Ignore production settings file
 /production.env
