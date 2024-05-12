@@ -20,11 +20,13 @@ from rest_framework_tracking.models import APIRequestLog
 
 from common.authentication import JWTCookieOrHeaderAuthentication
 from common.captcha import generate_captcha
+from common.pagination import UnlimitedPagination
 from common.permissions import IsOwnerAccount
 from common.result import Result
 from common.throttling import ImageCaptchaThrottle, EmailCaptchaThrottle
 from common.utils.token import remove_token_caches, serializer_token
 from common.viewsets import ModelViewSetFormatResult, ReadOnlyModelViewSetFormatResult
+from .filters import UserSimpleFilter
 from .models import User
 from .serializers import RegisterUserSerializer, UserSerializer, UserSimpleSerializer
 
@@ -130,6 +132,6 @@ class UserViewSet(ModelViewSetFormatResult):
 
 
 class UserSimpleViewSet(ReadOnlyModelViewSetFormatResult):
-    queryset = User.objects.all()
+    queryset = User.objects.all().distinct()
     serializer_class = UserSimpleSerializer
-    filterset_fields = ("id", "user_role")
+    filterset_class = UserSimpleFilter

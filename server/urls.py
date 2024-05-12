@@ -31,6 +31,7 @@ urlpatterns = [
                 path("course/", include("course.urls")),
                 path("classes/", include("classes.urls")),
                 path("score/", include("score.urls")),
+                path("chat/", include("chat.urls")),
                 path("", include("common.urls")),
             ]
         ),
