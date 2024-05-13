@@ -1,19 +1,20 @@
+from django.db.models import Q
+from pydash import pick
 from rest_framework import serializers
+from rest_framework.relations import PrimaryKeyRelatedField
 
 from iam.serializers import UserSimpleSerializer
 from .models import Room, Message
 
 
 class MessageSerializer(serializers.ModelSerializer):
-    created_at_formatted = serializers.SerializerMethodField()
+    id = serializers.CharField(read_only=True)
     user = UserSimpleSerializer()
-
-    def get_created_at_formatted(self, obj: Message):
-        return obj.created_at.strftime("%d-%m-%Y %H:%M:%S")
+    room = PrimaryKeyRelatedField(read_only=True, pk_field=serializers.CharField())
 
     class Meta:
         model = Message
-        exclude = []
+        fields = "__all__"
         depth = 1
 
 
@@ -30,5 +31,30 @@ class RoomSerializer(serializers.ModelSerializer):
     class Meta:
         model = Room
         fields = ["id", "name", "host", "messages", "members", "last_message"]
-        depth = 1
         read_only_fields = ["id", "messages", "last_message"]
+
+
+class RoomListSerializer(serializers.ModelSerializer):
+    id = serializers.CharField(read_only=True)
+
+    def to_representation(self, instance: Room):
+        ret = super().to_representation(instance)
+        other_members = instance.members.filter(
+            ~Q(id=self.context.get("request").user.id)
+        ).first()
+        last_message = instance.messages.order_by("-created_at").first()
+        count = instance.messages.filter(is_read=False).count()
+        ret.update(
+            {
+                "name": other_members.real_name,
+                "avatar": other_members.avatar,
+                "message": getattr(last_message, "text", ""),
+                "count": count,
+                "time": getattr(last_message, "created_at", None),
+            }
+        )
+        return ret
+
+    class Meta:
+        model = Room
+        fields = ["id"]

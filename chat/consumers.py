@@ -101,15 +101,15 @@ class RoomConsumer(ObserverModelInstanceMixin, GenericAsyncAPIConsumer):
 
     @database_sync_to_async
     def current_users(self, room: Room):
-        return [UserSimpleSerializer(user).data for user in room.current_users.all()]
+        return [UserSimpleSerializer(user).data for user in room.members.all()]
 
     @database_sync_to_async
     def remove_user_from_room(self, room):
         user: User = self.scope["user"]
-        user.current_rooms.remove(room)
+        user.rooms.remove(room)
 
     @database_sync_to_async
     def add_user_to_room(self, pk):
         user: User = self.scope["user"]
-        if not user.current_rooms.filter(pk=self.room_subscribe).exists():
-            user.current_rooms.add(Room.objects.get(pk=pk))
+        if not user.rooms.filter(pk=self.room_subscribe).exists():
+            user.rooms.add(Room.objects.get(pk=pk))

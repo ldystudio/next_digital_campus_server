@@ -17,8 +17,8 @@ class Room(models.Model):
     type = models.SmallIntegerField(
         db_comment="聊天室类型", choices=room_type_choices, default=1
     )
-    host = models.ForeignKey(User, on_delete=models.CASCADE, related_name="rooms")
-    members = models.ManyToManyField(User, related_name="members", blank=True)
+    host = models.ForeignKey(User, on_delete=models.CASCADE, related_name="host_rooms")
+    members = models.ManyToManyField(User, related_name="rooms", blank=True)
 
     def __str__(self):
         return f"Room({self.name} {self.host})"
@@ -31,10 +31,6 @@ class Message(models.Model):
     file = models.FileField(
         db_comment="聊天文件", upload_to="chat_files", null=True, blank=True
     )
-    is_file = models.BooleanField(db_comment="是否为文件", default=False)
-    is_image = models.BooleanField(db_comment="是否为图片", default=False)
-    is_audio = models.BooleanField(db_comment="是否为音频", default=False)
-    is_video = models.BooleanField(db_comment="是否为视频", default=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="messages")
     created_at = models.DateTimeField(db_comment="创建时间", auto_now_add=True)
 
