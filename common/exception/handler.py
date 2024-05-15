@@ -80,7 +80,7 @@ def exception_handler(exc, context):
 def handle_validation_errors(exc):
     # 映射不同类型的验证错误到相应的处理函数
     validation_errors = {
-        IntegrityError: lambda: Result.FAIL_400_INVALID_PARAM(_("用户名或邮箱已存在")),
+        IntegrityError: lambda: Result.FAIL_400_INVALID_PARAM("参数错误"),
         ValidationError: lambda: Result.FAIL_400_INVALID_PARAM(exc.message),
         SMTPDataError: lambda: Result.FAIL_400_INVALID_PARAM(
             _("邮箱可能包含不存在的帐户，请检查收件人邮箱。")

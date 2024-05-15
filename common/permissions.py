@@ -37,7 +37,7 @@ class IsOwnerOperation(IsAuthenticated):
         return obj.user.id == request.user.id
 
 
-class IsOwnerMessage(IsAuthenticated):
+class IsOwnerRoom(IsAuthenticated):
     message = "只能对自己的消息操作"
 
     def has_object_permission(self, request, view, obj):

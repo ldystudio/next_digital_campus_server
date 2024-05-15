@@ -1,5 +1,5 @@
 from django.db.models import Q
-from pydash import pick
+from pydash import map_
 from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
 
@@ -58,3 +58,31 @@ class RoomListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Room
         fields = ["id"]
+
+
+class RoomRetrieveSerializer(serializers.ModelSerializer):
+    messages = MessageSerializer(many=True, read_only=True)
+
+    def to_representation(self, instance: Room):
+        ret = super().to_representation(instance)
+        request_user_id = self.context.get("request").user.id
+        other_members = instance.members.filter(~Q(id=request_user_id)).first()
+        ret["messages"] = map_(
+            ret["messages"],
+            lambda message: {
+                "avatar": message["user"]["avatar"],
+                "name": message["user"]["real_name"],
+                "time": message["created_at"],
+                "message": message["text"],
+                "isRTL": message["user"]["id"] == str(request_user_id),
+            },
+        )
+        ret["other_members"] = {
+            "real_name": other_members.real_name,
+            "user_role": other_members.user_role,
+        }
+        return ret
+
+    class Meta:
+        model = Room
+        fields = ["messages"]

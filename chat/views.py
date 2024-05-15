@@ -1,16 +1,20 @@
 from django.db import transaction
-from rest_framework.generics import RetrieveAPIView
 from rest_framework.mixins import RetrieveModelMixin, ListModelMixin, CreateModelMixin
 from rest_framework.viewsets import GenericViewSet
 from rest_framework_extensions.cache.decorators import cache_response
 from snowflake.client import get_guid
 
 from common.cache import CacheFnMixin
-from common.permissions import IsOwnerMessage
+from common.permissions import IsOwnerRoom
 from common.result import Result
 from iam.models import User
-from .models import Room, RoomType
-from .serializers import RoomSerializer, RoomListSerializer
+from .models import Room, RoomType, Message
+from .serializers import (
+    RoomSerializer,
+    RoomListSerializer,
+    RoomRetrieveSerializer,
+    MessageSerializer,
+)
 
 
 class RoomViewSet(
@@ -18,7 +22,7 @@ class RoomViewSet(
 ):
     queryset = Room.objects.all()
     serializer_class = RoomSerializer
-    permission_classes = (IsOwnerMessage,)
+    permission_classes = (IsOwnerRoom,)
 
     def get_queryset(self):
         queryset = self.queryset
@@ -32,14 +36,17 @@ class RoomViewSet(
     def get_serializer_class(self):
         if self.action == "list":
             return RoomListSerializer
+        elif self.action == "retrieve":
+            return RoomRetrieveSerializer
         return super().get_serializer_class()
 
-    @cache_response(key_func="list_cache_key_func")
+    # @cache_response(key_func="list_cache_key_func")
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
         serializer = self.get_serializer(queryset, many=True)
         return Result.OK_200_SUCCESS(data=serializer.data)
 
+    # @cache_response(key_func="object_cache_key_func")
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
         serializer = self.get_serializer(instance)
@@ -72,9 +79,30 @@ class RoomViewSet(
                         host=request.user,
                     )
                     instance.members.set([request.user.id, other_user_id])
+                    self.delete_cache_by_path_prefix()
                 except:
                     transaction.set_rollback(True)
                     return Result.FAIL_400_OPERATION("创建聊天室失败")
 
         serializer = RoomSerializer(instance=instance)
+        return Result.OK_200_SUCCESS(data=serializer.data)
+
+
+class MessageViewSet(CacheFnMixin, CreateModelMixin, GenericViewSet):
+    queryset = Message.objects.all()
+    serializer_class = MessageSerializer
+
+    def create(self, request, *args, **kwargs):
+        room_id = request.data.get("room_id", None)
+        text = request.data.get("text", None)
+
+        if not room_id or not text:
+            return Result.FAIL_400_INVALID_PARAM("缺少参数")
+
+        instance = Message.objects.create(
+            pk=get_guid(), room_id=room_id, user=request.user, text=text
+        )
+        self.delete_cache_by_path_prefix(f"chat/room/{room_id}/")
+
+        serializer = MessageSerializer(instance=instance)
         return Result.OK_200_SUCCESS(data=serializer.data)

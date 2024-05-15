@@ -11,7 +11,7 @@ from pydash import map_
 class CacheFnMixin:
     cache_paths_to_delete = [None]
 
-    def delete_cache_by_path_prefix(self, path: str | set | None):
+    def delete_cache_by_path_prefix(self, path: str | set = None):
         request = self.request
         if path is None:
             path = request.path
