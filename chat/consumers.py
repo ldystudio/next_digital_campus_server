@@ -2,19 +2,25 @@ import json
 
 from channels.db import database_sync_to_async
 from djangochannelsrestframework.generics import GenericAsyncAPIConsumer
+from djangochannelsrestframework.mixins import RetrieveModelMixin
 from djangochannelsrestframework.observer import model_observer
 from djangochannelsrestframework.observer.generics import (
     ObserverModelInstanceMixin,
     action,
 )
+from rest_framework import status
+from snowflake.client import get_guid
 
+from common.console import console
 from iam.models import User
 from iam.serializers import UserSimpleSerializer
 from .models import Message, Room
-from .serializers import MessageSerializer, RoomSerializer
+from .serializers import MessageSerializer, RoomSerializer, RoomRetrieveSerializer
 
 
-class RoomConsumer(ObserverModelInstanceMixin, GenericAsyncAPIConsumer):
+class RoomConsumer(
+    ObserverModelInstanceMixin, RetrieveModelMixin, GenericAsyncAPIConsumer
+):
     queryset = Room.objects.all()
     serializer_class = RoomSerializer
     lookup_field = "pk"
@@ -23,16 +29,27 @@ class RoomConsumer(ObserverModelInstanceMixin, GenericAsyncAPIConsumer):
         super().__init__(args, kwargs)
         self.room_subscribe = None
 
+    async def connect(self):
+        console.print(
+            f'WebSocket Connection with {self.scope["user"]} established!',
+            style="green",
+        )
+        await super().connect()
+
     async def disconnect(self, code):
-        if hasattr(self, "room_subscribe"):
-            await self.remove_user_from_room(self.room_subscribe)
+        if getattr(self, "room_subscribe", None):
+            # await self.remove_user_from_room(self.room_subscribe)
             await self.notify_users()
+        console.print(
+            f'WebSocket Disconnection with {self.scope["user"]} closed with code {code}',
+            style="red",
+        )
         await super().disconnect(code)
 
     @action()
     async def join_room(self, pk, **kwargs):
         self.room_subscribe = pk
-        await self.add_user_to_room(pk)
+        # await self.add_user_to_room(pk)
         await self.notify_users()
 
     @action()
@@ -40,10 +57,18 @@ class RoomConsumer(ObserverModelInstanceMixin, GenericAsyncAPIConsumer):
         await self.remove_user_from_room(pk)
 
     @action()
+    def retrieve(self, **kwargs):
+        instance = self.get_object(**kwargs)
+        serializer = RoomRetrieveSerializer(
+            instance=instance, context={"request_user": self.scope["user"]}
+        )
+        return serializer.data, status.HTTP_200_OK
+
+    @action()
     async def create_message(self, message, **kwargs):
         room: Room = await self.get_room(pk=self.room_subscribe)
         await database_sync_to_async(Message.objects.create)(
-            room=room, user=self.scope["user"], text=message
+            pk=get_guid(), room=room, user=self.scope["user"], text=message
         )
 
     @action()
@@ -66,7 +91,7 @@ class RoomConsumer(ObserverModelInstanceMixin, GenericAsyncAPIConsumer):
 
     @message_activity.groups_for_signal
     def message_activity(self, instance: Message, **kwargs):
-        yield "room__{instance.room_id}"
+        yield f"room__{instance.room_id}"
         yield f"pk__{instance.pk}"
 
     @message_activity.groups_for_consumer
@@ -81,7 +106,7 @@ class RoomConsumer(ObserverModelInstanceMixin, GenericAsyncAPIConsumer):
         out to all the subscribing consumers.
         """
         return dict(
-            data=MessageSerializer(instance).data, action=action.value, pk=instance.pk
+            pk=instance.pk, action=action.value, data=MessageSerializer(instance).data
         )
 
     async def notify_users(self):

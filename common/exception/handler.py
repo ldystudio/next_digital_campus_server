@@ -14,9 +14,6 @@ from common.result import Result
 from common.console import console
 
 
-# from rich import print
-
-
 def exception_handler(exc, context):
     # 其他异常处理逻辑...
     # print(context.get('request').META.get('REMOTE_ADDR'))

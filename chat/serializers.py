@@ -1,5 +1,5 @@
 from django.db.models import Q
-from pydash import map_
+from pydash import omit
 from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
 
@@ -11,6 +11,15 @@ class MessageSerializer(serializers.ModelSerializer):
     id = serializers.CharField(read_only=True)
     user = UserSimpleSerializer()
     room = PrimaryKeyRelatedField(read_only=True, pk_field=serializers.CharField())
+
+    def to_representation(self, instance: Room):
+        ret = super().to_representation(instance)
+        ret["userId"] = ret["user"]["id"]
+        ret["avatar"] = ret["user"]["avatar"]
+        ret["name"] = ret["user"]["real_name"]
+        ret["time"] = ret.pop("created_at")
+        ret["message"] = ret.pop("text")
+        return omit(ret, ["user", "room", "is_read", "file"])
 
     class Meta:
         model = Message
@@ -65,18 +74,8 @@ class RoomRetrieveSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance: Room):
         ret = super().to_representation(instance)
-        request_user_id = self.context.get("request").user.id
+        request_user_id = self.context.get("request_user").id
         other_members = instance.members.filter(~Q(id=request_user_id)).first()
-        ret["messages"] = map_(
-            ret["messages"],
-            lambda message: {
-                "avatar": message["user"]["avatar"],
-                "name": message["user"]["real_name"],
-                "time": message["created_at"],
-                "message": message["text"],
-                "isRTL": message["user"]["id"] == str(request_user_id),
-            },
-        )
         ret["other_members"] = {
             "real_name": other_members.real_name,
             "user_role": other_members.user_role,
