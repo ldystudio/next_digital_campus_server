@@ -7,7 +7,7 @@ LABEL maintainer="Ldy <1187551003@qq.com>"
 ENV PYTHONDONTWRITEBYTECODE 1
 # 输出运行信息到终端
 ENV PYTHONUNBUFFERED 1
-
+ENV DJANGO_SETTINGS_MODULE server.settings
 # 设置工作目录
 WORKDIR /code
 
@@ -23,7 +23,7 @@ RUN echo "Asia/Shanghai" > /etc/timezone
 # 安装依赖
 COPY ./requirements.txt /code/
 RUN pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
-RUN pip install uwsgi
+RUN pip install uwsgi supervisor
 
 # 复制项目代码到工作目录
 COPY . /code/
