@@ -54,7 +54,7 @@ services:
             - .:/code
         environment:
             - TZ=Asia/Shanghai
-        command: uwsgi --ini /code/uwsgi.ini
+        command: supervisord -c /code/conf/supervisord.conf
         depends_on:
             - snowflake
             - redis
