@@ -1,4 +1,4 @@
-# next_digital_campus_server~~暂未开发完毕
+# next_digital_campus_server
 Next数字校园系统是一套基于现代化信息技术的全新型校园管理系统
 ## 特色
 
@@ -16,7 +16,10 @@ Next数字校园系统是一套基于现代化信息技术的全新型校园管�
 - [Django 4.2.8](https://www.djangoproject.com/)
 - [Django REST framework](https://www.django-rest-framework.org/)
 
+## 开发
+
 ### 开启雪花算法生成服务器
+
 ```shell
 # 前台开启
 snowflake_start_server --log_file_prefix=snowflake/pysnowflask.log
@@ -57,4 +60,12 @@ python manage.py migrate
 # 运行
 python manage.py runserver 8000
 ```
+
+## 部署
+
+> 将uwsgi + daphne+ supervisor + nginx组件使用Docker部署
+
+查看docker-compose.yaml文件中相关容器挂载的路径，提前创建好文件夹，将conf文件夹下的相关xxx.conf文件移动到对应地方，conf文件中某些字段如ip地址、密码之类的字段还需进行修改。
+
+进入项目文件夹下输入``docker-compose up -d``一键部署！
 
