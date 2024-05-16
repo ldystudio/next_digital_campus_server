@@ -7,7 +7,7 @@ LABEL maintainer="Ldy <1187551003@qq.com>"
 ENV PYTHONDONTWRITEBYTECODE 1
 # 输出运行信息到终端
 ENV PYTHONUNBUFFERED 1
-ENV DJANGO_SETTINGS_MODULE server.settings
+
 # 设置工作目录
 WORKDIR /code
 
