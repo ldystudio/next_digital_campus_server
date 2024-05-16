@@ -72,9 +72,10 @@ services:
             - /opt/software/nginx/html:/usr/share/nginx/html
             - /opt/software/nginx/logs:/var/log/nginx
             - /opt/next-digital-campus/server/media:/code/media
-            - /opt/next-digital-campus/server/websocket.sock:/code/websocket.sock
+            - /opt/next-digital-campus/server/server:/code/server
         environment:
             - TZ=Asia/Shanghai
         depends_on:
             - django
         restart: always
+        entrypoint: /bin/bash -c "sleep 5 && nginx -g 'daemon off;'"
