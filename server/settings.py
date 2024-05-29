@@ -9,6 +9,7 @@ https://docs.djangoproject.com/en/4.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
+import ast
 from configparser import ConfigParser
 from datetime import timedelta
 from pathlib import Path
@@ -216,7 +217,7 @@ EMAIL_HOST_USER = CONFIG.get("common", "EMAIL_HOST_USER")
 # 发送邮件的邮箱授权码
 EMAIL_HOST_PASSWORD = CONFIG.get("common", "EMAIL_HOST_PASSWORD")
 # 收到代码错误通知的所有人员的列表
-ADMINS = [("ChangQing", "1187551003@qq.com")]
+ADMINS = ast.literal_eval(CONFIG.get("common", "ADMINS"))
 
 # DRF全局配置
 REST_FRAMEWORK = {
@@ -224,7 +225,7 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         # JWT认证
         # 'rest_framework_simplejwt.authentication.JWTAuthentication',
-        # 重写JWT认证，加入redis黑名单机制
+        # 重写JWT认证，加入redis缓存
         "common.authentication.JWTCookieOrHeaderAuthentication",
     ),
     # 权限
