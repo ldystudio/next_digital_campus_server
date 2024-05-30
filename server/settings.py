@@ -17,7 +17,7 @@ from pathlib import Path
 from generate_rsa_keys import verifying_key, signing_key
 
 CONFIG = ConfigParser()
-CONFIG.read(".env.cfg")
+CONFIG.read(".env.cfg", encoding="utf-8")
 if not CONFIG.has_section("common"):
     raise ImportError(".env.cfg文件未找到或导入失败。请检查Python路径设置确保文件存在。")
 
